@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nanuk, tu oso polar</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
+<style>body{margin:0}</style>
+<link rel="stylesheet" href="style.css?v=5">
+</head>
+<body>
+<div id="nanuk">
+<main class="game">
+  <header><h1>Nanuk</h1><div class="chips"><span id="nivel"></span><span id="monedas"></span></div></header>
+  <section class="stats">
+    <div class="stat"><span>Hambre</span><div class="bar"><i id="b-hambre"></i></div></div>
+    <div class="stat"><span>Energía</span><div class="bar"><i id="b-energia"></i></div></div>
+    <div class="stat"><span>Diversión</span><div class="bar"><i id="b-diversion"></i></div></div>
+    <div class="stat"><span>Limpieza</span><div class="bar"><i id="b-limpieza"></i></div></div>
+  </section>
+  <section class="stage" id="stage">
+    <svg id="bear" viewBox="0 0 200 220" role="img" aria-label="Nanuk, el oso polar" tabindex="0">
+      <ellipse class="shadow" id="sombra" cx="100" cy="212" rx="55" ry="7"/>
+      <g id="cuerpo">
+        <g class="brazo" id="brazoL"><ellipse class="fur" cx="44" cy="160" rx="13" ry="27" transform="rotate(18 44 160)"/></g>
+        <g class="brazo" id="brazoR"><ellipse class="fur" cx="156" cy="160" rx="13" ry="27" transform="rotate(-18 156 160)"/></g>
+        <ellipse class="fur" cx="100" cy="150" rx="58" ry="58"/>
+        <ellipse class="fur" cx="62" cy="200" rx="18" ry="11"/><ellipse class="fur" cx="138" cy="200" rx="18" ry="11"/>
+        <g id="manta"><path d="M42 150 q58 -12 116 0 l8 58 h-132z" fill="#7aa7e8" stroke="#5a86c8" stroke-width="3"/><path d="M50 172 q50 -8 100 0 M46 190 q54 -8 108 0" fill="none" stroke="#a9c8f5" stroke-width="4" stroke-linecap="round"/></g>
+        <g id="cabeza">
+          <circle class="fur" cx="52" cy="58" r="20"/><circle class="ear-in" cx="52" cy="58" r="9"/>
+          <circle class="fur" cx="148" cy="58" r="20"/><circle class="ear-in" cx="148" cy="58" r="9"/>
+          <ellipse class="fur" cx="100" cy="90" rx="62" ry="54"/>
+          <ellipse class="muzzle" cx="100" cy="108" rx="28" ry="21"/>
+          <g id="mirada"><g class="eyes"><ellipse class="eye" cx="76" cy="84" rx="6.5" ry="8"/><ellipse class="eye" cx="124" cy="84" rx="6.5" ry="8"/>
+            <circle class="glint" cx="78" cy="81" r="2.2"/><circle class="glint" cx="126" cy="81" r="2.2"/></g></g>
+          <path class="closed" d="M68 86 q8 6 16 0 M116 86 q8 6 16 0"/>
+          <path class="equis" d="M69 77 l14 14 M83 77 l-14 14 M117 77 l14 14 M131 77 l-14 14"/>
+          <ellipse class="nose" cx="100" cy="98" rx="9" ry="6"/><circle id="moco" cx="106" cy="100" r="8" fill="rgba(160,220,255,.55)" stroke="#8ac" stroke-width="2"/>
+          <g id="boca"><ellipse cx="100" cy="118" rx="14" ry="12" fill="#5a1f2b"/><ellipse cx="100" cy="125" rx="8" ry="5" fill="#ff7a8a"/></g>
+          <path class="mouth" id="mouth" d="M88 114 q12 10 24 0"/>
+          <ellipse class="blush" cx="60" cy="102" rx="8" ry="5"/><ellipse class="blush" cx="140" cy="102" rx="8" ry="5"/>
+          <g id="mugre" fill="#8a6a4a" opacity="0"><circle cx="72" cy="66" r="6"/><circle cx="132" cy="70" r="5"/><circle cx="88" cy="62" r="3.5"/><circle cx="118" cy="122" r="4"/><circle cx="80" cy="124" r="3"/><circle cx="84" cy="172" r="7"/><circle cx="122" cy="184" r="6"/></g>
+
+
+          <ellipse class="halo" cx="100" cy="12" rx="34" ry="8"/>
+        </g>
+      </g>
+      <g id="bubbles"></g>
+    </svg>
+    <canvas id="fx"></canvas>
+    <div class="luna" aria-hidden="true">🌙</div>
+    <div class="zzz" aria-hidden="true">z z z</div>
+    <p class="msg" id="msg" role="status"></p>
+  </section>
+  <nav id="nav">
+    <button data-room="cocina">Cocina</button><button data-room="bano">Baño</button><button data-room="cuarto">Cuarto</button>
+    <button data-room="juego">Juego</button>
+  </nav>
+  <section class="panel" id="panel"></section>
+  <p class="hint">Arrastrá la comida a la boca de Nanuk. Teclas: 1-4 cambian de sala · D luz/dormir · P poción · R revivir</p>
+</main>
+</div>
+<script src="main.js?v=5"></script>
+</body>
+</html>
