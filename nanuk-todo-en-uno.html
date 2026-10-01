@@ -216,7 +216,7 @@ function burbujas(){const g=$("bubbles");for(let i=0;i<5;i++){const c=document.c
 
 function render(){
   ST.forEach(k=>{const b=$("b-"+k);b.style.width=s[k]+"%";b.classList.toggle("bajo",s[k]<=30)});
-  $("nivel").textContent="Nivel "+nivel();$("monedas").textContent=s.monedas+" 🪙";
+  $("nivel").textContent="Nivel "+nivel();$("monedas").textContent=s.monedas+" ❄️";
   stage.dataset.room=sala;$("mugre").style.opacity=s.limpieza<60?(60-s.limpieza)/60:0;stage.classList.toggle("noche",s.dormido);
   bear.classList.toggle("dormido",s.dormido);bear.classList.toggle("muerto",s.muerto);
   const p=prom();
@@ -229,10 +229,10 @@ function pintar(){
   if(s.dormido){panel.innerHTML='<button class="rosa" data-a="dormir">Encender luz</button>';return}
   const B=(a,t,x="",c="")=>`<button class="${c}" data-a="${a}" data-x="${x}">${t}</button>`;
   panel.innerHTML={
-    cocina:COMIDA.map((c,i)=>`<div class="food" data-i="${i}" data-e="${c[4]}"><b>${c[4]}</b>${c[0]}${i==FAV?" ⭐":""}<small>${c[1]?c[1]+" 🪙":"gratis"}</small></div>`).join("")+'<p class="info">Arrastrá la comida hasta la boca de Nanuk (o tocala).</p>',
+    cocina:COMIDA.map((c,i)=>`<div class="food" data-i="${i}" data-e="${c[4]}"><b>${c[4]}</b>${c[0]}${i==FAV?" ⭐":""}<small>${c[1]?c[1]+" ❄️":"gratis"}</small></div>`).join("")+'<p class="info">Arrastrá la comida hasta la boca de Nanuk (o tocala).</p>',
     bano:'<div class="jabon"><b>🧼</b>Jabón<small>frotalo sobre Nanuk</small></div>'+B("banar","Ducha rápida<small>gratis</small>")+'<p class="info">Arrastrá el jabón y frotá a Nanuk hasta dejarlo limpio.</p>',
     cuarto:B("dormir","Apagar luz y dormir<small>recupera energía</small>")+B("pocion","Poción de matar","","mor"),
-    juego:B("jugar","Atrapa pescados<small>−15 energía, ganás 🪙</small>"),
+    juego:B("jugar","Atrapa pescados<small>−15 energía, ganás ❄️</small>"),
   }[sala];
   panel.style.gridTemplateColumns=sala=="cocina"?"repeat(3,1fr)":"";
 }
