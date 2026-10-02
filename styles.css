@@ -1,0 +1,146 @@
+body{margin:0}
+#nanuk{--noche:#0d2a40;--nieve:#fff;--sombra:#b9dbe8;--nariz:#1b2a36;--acento:#ff7a8a;--barra:#4fb6e0}
+#nanuk,#nanuk *{box-sizing:border-box}
+#nanuk{margin:0;min-height:100vh;display:grid;place-items:center;padding:14px;font-family:"Fredoka",system-ui,sans-serif;color:var(--noche);background:linear-gradient(180deg,#a9dcf0,#e9f8fd)}
+#nanuk .game{width:min(460px,100%);text-align:center}
+#nanuk header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+#nanuk h1{margin:0;font-size:2rem;font-weight:600}
+#nanuk .chips span{display:inline-block;margin-left:6px;padding:5px 12px;border-radius:99px;background:var(--nieve);font-weight:600;font-size:.9rem}
+#nanuk .stats{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin-bottom:12px}
+#nanuk .stat{text-align:left;font-size:.85rem}
+#nanuk .bar{margin-top:2px;height:11px;border-radius:99px;background:rgba(13,42,64,.15);overflow:hidden}
+#nanuk .bar i{display:block;height:100%;width:100%;background:var(--barra);border-radius:99px;transition:width .5s}
+#nanuk .bar i.bajo{background:var(--acento)}
+#nanuk .stage{position:relative;padding:14px 12px 10px;border-radius:28px;border:3px solid var(--nieve);box-shadow:0 10px 30px rgba(13,42,64,.18);overflow:hidden;transition:background .6s;background:#dff3fa}
+#nanuk .stage[data-room=cocina]{background:linear-gradient(#fbe9d0 70%,#e8c99b 70%)}
+#nanuk .stage[data-room=bano]{background:repeating-linear-gradient(#cfeef5 0 38px,#bfe4ee 38px 40px)}
+#nanuk .stage[data-room=cuarto]{background:#d8dcf5}
+#nanuk .stage.noche{background:#22415c}
+#nanuk .stage.noche .msg{color:var(--nieve)}
+#nanuk #bear{width:min(240px,66%);cursor:pointer;}
+#nanuk #bear:focus-visible{outline:3px solid var(--barra);outline-offset:6px;border-radius:24px}
+#nanuk .shadow{fill:rgba(13,42,64,.15)}
+#nanuk .fur{fill:var(--nieve);stroke:var(--sombra);stroke-width:3}
+#nanuk .ear-in{fill:#f7c9d0}
+#nanuk .muzzle{fill:#f1fafd;stroke:var(--sombra);stroke-width:2}
+#nanuk .eye,#nanuk .nose{fill:var(--nariz)}
+#nanuk .glint{fill:#fff}
+#nanuk .mouth,#nanuk .closed,#nanuk .equis{fill:none;stroke:var(--nariz);stroke-width:3;stroke-linecap:round}
+#nanuk .equis{stroke-width:4}
+#nanuk .blush{fill:var(--acento);opacity:.35}
+#nanuk .closed,#nanuk .equis,#nanuk .halo{display:none}
+#nanuk .halo{fill:none;stroke:#ffd76a;stroke-width:5}
+#nanuk .dormido .eyes{display:none}
+#nanuk .dormido .closed{display:block}
+#nanuk .eyes{transform-origin:100px 84px;animation:nk-parp 5s infinite}
+@keyframes nk-parp{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+#nanuk .muerto .eyes,#nanuk .muerto .closed,#nanuk .muerto .blush{display:none}
+#nanuk .muerto .equis,#nanuk .muerto .halo{display:block}
+#nanuk #bubbles circle{fill:#fff;stroke:var(--barra);stroke-width:2;animation:nk-bur 1.4s forwards}
+@keyframes nk-bur{to{opacity:0;transform:translateY(-40px)}}
+#nanuk .zzz{position:absolute;top:36px;right:18%;font-weight:600;font-size:1.5rem;color:#fff;opacity:0}
+#nanuk .noche .zzz{opacity:1;animation:nk-flota 2.4s ease-in-out infinite}
+@keyframes nk-flota{50%{transform:translateY(-10px)}}
+#nanuk .msg{margin:8px 0 0;min-height:1.4em}
+#nanuk nav{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:12px}
+#nanuk nav button{background:rgba(13,42,64,.12);color:var(--noche);padding:10px 2px;font-size:.85rem}
+#nanuk nav button.on{background:var(--noche);color:#fff}
+#nanuk .panel{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+#nanuk .panel canvas{grid-column:1/-1;width:100%;border-radius:18px;touch-action:none}
+#nanuk .panel .info{grid-column:1/-1;margin:0;font-size:.9rem}
+#nanuk button{font:inherit;font-weight:600;padding:12px 8px;border:0;border-radius:16px;background:var(--noche);color:#fff;cursor:pointer}
+#nanuk button:hover{filter:brightness(1.2)}
+#nanuk button:active{transform:translateY(2px)}
+#nanuk button:focus-visible{outline:3px solid var(--barra);outline-offset:2px}
+#nanuk button small{display:block;font-weight:400;font-size:.75rem;opacity:.8}
+#nanuk .mor{background:#5b2e8c}
+#nanuk .rosa{background:var(--acento);color:var(--noche);grid-column:1/-1}
+#nanuk .hint{margin:10px 0 0;font-size:.8rem;opacity:.7}
+@media(prefers-reduced-motion:reduce){#nanuk,#nanuk *{animation:none!important;transition:none!important}
+}
+#nanuk #fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+#nanuk #cuerpo{transform-origin:100px 210px;animation:nk-resp 3s ease-in-out infinite}
+#nanuk #cabeza{transform-origin:100px 140px;animation:nk-cabeceo 6s ease-in-out infinite}
+#nanuk #sombra{transform-origin:100px 212px}
+#nanuk .brazo{transform-origin:50% 0}
+#nanuk #brazoL{transform-origin:46px 140px}
+#nanuk #brazoR{transform-origin:154px 140px}
+#nanuk #mirada{transition:transform .15s}
+#nanuk #boca{display:none;transform-origin:100px 112px}
+@keyframes nk-resp{50%{transform:scale(1.015,1.03)}}
+@keyframes nk-cabeceo{25%{transform:rotate(2.5deg)}75%{transform:rotate(-2.5deg)}}
+#nanuk .abre #boca,#nanuk .bosteza #boca,#nanuk .mastica #boca{display:block}
+#nanuk .abre .mouth,#nanuk .bosteza .mouth,#nanuk .mastica .mouth{display:none}
+#nanuk .mastica #boca{animation:nk-chew .25s 6}
+@keyframes nk-chew{50%{transform:scaleY(.35)}}
+#nanuk .mastica #cabeza{animation:nk-mast .25s 6}
+@keyframes nk-mast{50%{transform:translateY(3px) rotate(2deg)}}
+#nanuk .salto #cuerpo{animation:nk-salto .6s}
+#nanuk .salto #sombra{animation:nk-sombra .6s}
+@keyframes nk-salto{0%,100%{transform:none}20%{transform:scale(1.08,.86)}50%{transform:translateY(-34px) scale(.94,1.08)}80%{transform:scale(1.06,.9)}}
+@keyframes nk-sombra{50%{transform:scale(.55);opacity:.5}}
+#nanuk .baila #cuerpo{animation:nk-baila .5s 4}
+#nanuk .baila #brazoL{animation:nk-alzaL .5s 4}
+#nanuk .baila #brazoR{animation:nk-alzaR .5s 4}
+@keyframes nk-baila{25%{transform:translateY(-14px) rotate(-6deg)}75%{transform:translateY(-14px) rotate(6deg)}}
+@keyframes nk-alzaL{50%{transform:rotate(-150deg)}}
+@keyframes nk-alzaR{50%{transform:rotate(150deg)}}
+#nanuk .saluda #brazoR{animation:nk-saluda .4s 4}
+@keyframes nk-saluda{0%,100%{transform:rotate(-130deg)}50%{transform:rotate(-165deg)}}
+#nanuk .bosteza #boca{transform:scale(1.35)}
+#nanuk .bosteza #cabeza{animation:nk-bost 2s}
+@keyframes nk-bost{30%,70%{transform:rotate(-6deg) translateY(-4px)}}
+#nanuk .sacude #cuerpo{animation:nk-sac .5s}
+@keyframes nk-sac{20%,60%{transform:rotate(-5deg)}40%,80%{transform:rotate(5deg)}}
+#nanuk #bear.muerto #cuerpo{animation:none;transform:rotate(-8deg)}
+#nanuk #bear.muerto #cabeza{animation:none}
+#nanuk .food,#nanuk .jabon{display:flex;flex-direction:column;align-items:center;padding:10px 4px;border-radius:16px;background:var(--noche);color:#fff;cursor:grab;user-select:none;touch-action:none;font-weight:600;font-size:.85rem}
+#nanuk .food b{font-size:2.2rem;line-height:1.2}
+#nanuk .food small{opacity:.8;font-weight:400}
+#nanuk .drag{position:fixed;z-index:9;transform:translate(-50%,-50%) scale(1.3);font-size:3rem;pointer-events:none}
+#nanuk .zzz{display:none!important}
+#nanuk #bear,#nanuk .msg{position:relative;z-index:1}
+#nanuk .jabon{display:flex;flex-direction:column;align-items:center;padding:10px 4px;border-radius:16px;background:#2a7fb0;color:#fff;cursor:grab;user-select:none;touch-action:none;font-weight:600;font-size:.85rem}
+#nanuk .jabon b{font-size:2.2rem;line-height:1.2}
+#nanuk .jabon small{font-weight:400;opacity:.85;font-size:.75rem}
+#nanuk .stage.noche{background:#14283f}
+#nanuk .stage.noche::before{content:"";position:absolute;inset:0;z-index:0;background-image:radial-gradient(circle,#fff 1.2px,transparent 1.8px),radial-gradient(circle,#ffe9a8 1px,transparent 1.6px);background-size:60px 60px,37px 37px;background-position:10px 8px,25px 30px;animation:nk-titila 3s ease-in-out infinite alternate}
+@keyframes nk-titila{to{opacity:.35}}
+#nanuk .luna{position:absolute;top:12px;left:16px;font-size:2rem;opacity:0;transform:translateY(-20px);transition:.8s}
+#nanuk .noche .luna{opacity:1;transform:none}
+#nanuk #manta,#nanuk #moco{display:none}
+#nanuk .dormido #manta{display:block}
+#nanuk .dormido #cuerpo{animation:nk-respd 4.5s ease-in-out infinite;transform:translateY(8px)}
+@keyframes nk-respd{0%,100%{transform:translateY(8px)}50%{transform:translateY(8px) scale(1.02,1.04)}}
+#nanuk .dormido #cabeza{animation:none;transform:rotate(9deg) translateY(4px)}
+#nanuk .dormido #moco{display:block;transform-box:fill-box;transform-origin:center;animation:nk-moco 3s ease-in-out infinite}
+@keyframes nk-moco{0%{transform:scale(.1);opacity:1}80%{transform:scale(1.8);opacity:1}100%{transform:scale(2);opacity:0}}
+#nanuk .no #cabeza{animation:nk-no .5s 2}
+@keyframes nk-no{25%{transform:rotate(-9deg)}75%{transform:rotate(9deg)}}
+/* ---- Hielo, mar y reciclaje ---- */
+html{height:100%;scroll-padding-top:env(safe-area-inset-top,0px)}
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{height:100%;background:#a9dcf0}
+#nanuk{min-height:100%}
+#nanuk #bear{overflow:visible}
+#nanuk .esc{pointer-events:none}
+#nanuk .stage[data-room]:not(.noche){background:linear-gradient(#a9dcf0,#e9f8fd 70%)}
+#nanuk .stage{padding-bottom:16px}
+#nanuk .msg{display:block;width:fit-content;max-width:100%;margin:48px auto 0;padding:4px 14px;border-radius:99px;background:rgba(255,255,255,.88);pointer-events:none}
+#nanuk .noche .msg{background:rgba(13,42,64,.8)}
+#nanuk .agua{fill:#56bfe8}
+#nanuk .hielo{fill:#f4fcff;stroke:#cdeaf5;stroke-width:3}
+#nanuk .lado{fill:#9fd3e6}
+#nanuk .noche .agua{fill:#1c4a6e}
+#nanuk .noche .hielo{fill:#dbeaf3}
+#nanuk .noche .lado{fill:#6fa7bf}
+#nanuk .ola{fill:none;stroke:#fff;stroke-opacity:.55;stroke-width:3;stroke-linecap:round;animation:nk-ola 5s linear infinite}
+#nanuk .ola.o2{animation-duration:7s;animation-direction:reverse}
+@keyframes nk-ola{to{transform:translateX(80px)}}
+#nanuk .bas{cursor:pointer;transform-box:fill-box;transform-origin:center;animation:nk-pop .4s,nk-boya 2.6s .4s ease-in-out infinite}
+#nanuk .bas text{user-select:none}
+@keyframes nk-pop{from{transform:scale(0);opacity:0}}
+@keyframes nk-boya{50%{transform:translateY(-4px) rotate(7deg)}}
+#nanuk .muerto #r-lentes{display:none}
+#nanuk nav{grid-template-columns:repeat(5,1fr)}
+#nanuk .verde{background:#2f8f4e;grid-column:1/-1}
