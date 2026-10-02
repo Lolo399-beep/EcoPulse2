@@ -52,8 +52,10 @@ function pintar(){
     bano:'<div class="jabon"><b>🧼</b>Jabón<small>frotalo sobre Polo</small></div>'+B("banar","Ducha rápida<small>gratis</small>")+'<p class="info">Arrastrá el jabón y frotá a Polo hasta dejarlo limpio.</p>',
     cuarto:B("dormir","Apagar luz y dormir<small>recupera energía</small>")+B("pocion","Poción de matar","","mor"),
     juego: 
-    B("jugarReciclaje", "♻️ Ecorreciclaje<small>−15 energía, ganás ❄️</small>") +
-    B("jugarFocos", "💡 Apaga Focos<small>−15 energía, 2 min de rapidez</small>", "", "rosa"),
+    B("jugarTuberias", "🚰 Tuberías<small>−15 energía, regá el huerto</small>", "", "azul") +
+    B("jugarReciclaje", "♻️️ Ecorreciclaje<small>−15 energía, ganás ❄️</small>") +
+    B("jugarFocos", "💡 Apaga Focos<small>−15 energía, 2 min de rapidez</small>", "", "rosa") +
+    B("jugarCinta", "🏭 Cinta de Residuos<small>−15 energía, ¡clasificá antes del 🔥!</small>", "", "verde"),
     eco:`<p class="info">🍎 Orgánico <b>${s.org}</b> · 🥤 Plástico <b>${s.pla}</b> · 🌱 Compost <b>${s.comp}</b></p>`+B("compostar","🌱 Hacer compost<small>orgánico → ❄️ y ✨</small>","","verde")+Object.entries(ROPA).map(([k,[e,n,c]])=>B("ropa",e+" "+n+"<small>"+(s.ropa[k]==2?"puesto ✓":s.ropa[k]?"ponérselo":c+" 🥤")+"</small>",k)).join("")+'<p class="info">Tocá la basura que flota: 🍌 se composta y 🥤 se cambia por ropa.</p>',
   }[sala];
   panel.style.gridTemplateColumns=sala=="cocina"||sala=="eco"?"repeat(3,1fr)":"";
@@ -311,6 +313,439 @@ function juegoFocos(p) {
   programarSiguienteFoco();
 }
 
+// ---- Minijuego 3: Cinta de Residuos 🏭🔥 ----
+// Los residuos viajan por la cinta hacia el incinerador. Arrastralos al contenedor correcto
+// (orgánico / reciclable / vidrio) antes de que lleguen. 3 vidas, 60 segundos.
+function juegoCinta(p) {
+  const CW = 320, CH = 300;   // tamaño lógico del canvas
+  const BY = 96;              // altura (y) de los residuos sobre la cinta
+  const INC = 262;            // x donde empieza el incinerador
+  const VIDAS = 3, DUR = 60;
+  const FONT = "Fredoka,system-ui,sans-serif";
+  const TIPOS = {
+    org: { n: "Orgánico",   ic: "🍌", col: "#8d6e3f", dk: "#6d4c2a", obj: ["🍌", "🍎", "🥕"] },
+    rec: { n: "Reciclable", ic: "♻️", col: "#1e88e5", dk: "#1565c0", obj: ["🧴", "🥫", "📰", "📦", "🥤"] },
+    vid: { n: "Vidrio",     ic: "🍾", col: "#2e7d32", dk: "#1b5e20", obj: ["🍾", "🍷", "🥛"] }
+  };
+  const BINS = ["org", "rec", "vid"].map((k, i) => ({ k, x: 10 + i * 104, y: 196, w: 92, h: 88 }));
+
+  p.innerHTML = `
+    <canvas id="cv-cinta" width="${CW}" height="${CH}"></canvas>
+    <div class="info" style="font-size:0.8rem; text-align:left; line-height:1.3; margin-top:6px;">
+      <p style="margin:2px 0;"><b>🍌 Orgánico:</b> cáscaras y restos · <b>♻️ Reciclable:</b> plástico, latas, papel y cartón · <b>🍾 Vidrio:</b> botellas y vasos</p>
+      <p style="margin:2px 0; font-style:italic;">Arrastrá cada residuo a su contenedor antes de que llegue al incinerador 🔥. Con teclado: O · R · V mandan el residuo más cercano al fuego.</p>
+    </div>
+  `;
+
+  const cv = $("cv-cinta"), c = cv.getContext("2d");
+  const dpr = Math.min(2, window.devicePixelRatio || 1);   // canvas nítido en pantallas retina
+  cv.width = CW * dpr; cv.height = CH * dpr; c.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  let it = [], pop = [], flash = [], drag = null, aviso = null;
+  let vivo = true, raf = 0, u = performance.now(), t = DUR, sp = .6, reloj = 0, belt = 0, quemado = 0;
+  let pts = 0, ok = 0, vidas = VIDAS, racha = 0;
+
+  const rr = (x, y, w, h, r) => { c.beginPath(); c.roundRect ? c.roundRect(x, y, w, h, r) : c.rect(x, y, w, h); };
+  const lp = e => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * CW / r.width, y: (e.clientY - r.top) * CH / r.height }; };
+  const binEn = o => BINS.find(b => o.x >= b.x - 6 && o.x <= b.x + b.w + 6 && o.y >= 150);
+
+  const aparece = () => {
+    const r = Math.random(), k = r < .3 ? "org" : r < .75 ? "rec" : "vid", l = TIPOS[k].obj;
+    it.push({ x: -16, y: BY, k, e: l[Math.random() * l.length | 0] });
+  };
+
+  const clasifica = (o, b) => {
+    it = it.filter(z => z !== o);
+    const bx = b.x + b.w / 2;
+    if (o.k === b.k) {
+      ok++; racha++; pts++;
+      let txt = "+1";
+      if (racha % 5 === 0) { pts += 2; txt = "+3 ¡racha!"; }
+      pop.push({ t: 0, x: bx, y: b.y - 6, txt, col: "#2e7d32" });
+      flash.push({ t: 0, b, ok: true });
+    } else {
+      pts--; racha = 0;
+      pop.push({ t: 0, x: bx, y: b.y - 6, txt: "−1", col: "#c62828" });
+      flash.push({ t: 0, b, ok: false });
+      aviso = { txt: o.e + " va en " + TIPOS[o.k].n, t: 2.2 };
+    }
+  };
+
+  const quema = o => {
+    vidas--; racha = 0; quemado = .35;
+    pop.push({ t: 0, x: INC - 14, y: BY - 34, txt: "🔥 −❤️", col: "#e65100" });
+    aviso = { txt: o.e + " se quemó · va en " + TIPOS[o.k].n, t: 2.2 };
+  };
+
+  // Arrastrar: se agarra con el puntero sobre el canvas; mover y soltar se escuchan en window
+  cv.addEventListener("pointerdown", e => {
+    if (!vivo || drag) return;
+    const q = lp(e);
+    let mejor = null, bd = 30;
+    it.forEach(o => { const d = Math.hypot(o.x - q.x, o.y - q.y); if (d < bd) { bd = d; mejor = o; } });
+    if (!mejor) return;
+    e.preventDefault();
+    drag = mejor; drag.x = q.x; drag.y = q.y;
+  });
+  const mueve = e => {
+    if (!drag) return;
+    const q = lp(e);
+    drag.x = Math.max(14, Math.min(CW - 14, q.x));
+    drag.y = Math.max(14, Math.min(CH - 14, q.y));
+  };
+  const suelta = () => {
+    if (!drag) return;
+    const o = drag; drag = null;
+    const b = binEn(o);
+    if (b) clasifica(o, b);
+    else { o.y = BY; o.x = Math.min(o.x, INC - 24); }   // si no cae en un contenedor, vuelve a la cinta
+  };
+  // Teclado: O / R / V mandan al contenedor el residuo más cercano al incinerador
+  const kd = e => {
+    if (!vivo || e.ctrlKey || e.metaKey || e.altKey) return;
+    const k = { o: "org", r: "rec", v: "vid" }[e.key.toLowerCase()];
+    if (!k) return;
+    const o = it.filter(z => z !== drag && z.x > 0).sort((a, b) => b.x - a.x)[0];
+    if (o) clasifica(o, BINS.find(b => b.k === k));
+  };
+  addEventListener("pointermove", mueve);
+  addEventListener("pointerup", suelta);
+  addEventListener("pointercancel", suelta);
+  addEventListener("keydown", kd);
+
+  parar = () => {
+    vivo = false;
+    cancelAnimationFrame(raf);
+    removeEventListener("pointermove", mueve);
+    removeEventListener("pointerup", suelta);
+    removeEventListener("pointercancel", suelta);
+    removeEventListener("keydown", kd);
+    parar = () => {};
+  };
+
+  const fin = () => {
+    const g = Math.max(0, pts), ganoCinta = vidas > 0;
+    parar();
+    s.monedas += g;
+    s.diversion = lim(s.diversion + 30);
+    s.energia = lim(s.energia - 15);
+    s.limpieza = lim(s.limpieza - 5);
+    gana(g * 2);
+    decir(ganoCinta
+      ? "¡Cinta despejada! " + ok + " residuos bien clasificados, +" + g + " ❄️"
+      : "¡El incinerador ganó esta vez! " + ok + " aciertos, +" + g + " ❄️");
+    guardar();
+    pintar();
+    render();
+  };
+
+  const dibuja = () => {
+    c.textBaseline = "middle";
+    c.fillStyle = "#eaf3f7"; c.fillRect(0, 0, CW, CH);
+    c.fillStyle = "#dbe8ee"; c.fillRect(0, 152, CW, CH - 152);
+
+    // Cinta transportadora (las tablillas avanzan a la misma velocidad que los residuos)
+    c.fillStyle = "#37474f"; c.fillRect(40, 132, 12, 20); c.fillRect(200, 132, 12, 20);
+    c.fillStyle = "#455a64"; rr(-10, 108, INC + 14, 24, 8); c.fill();
+    c.fillStyle = "#607d8b"; c.fillRect(0, 108, INC + 4, 4);
+    c.strokeStyle = "rgba(0,0,0,.22)"; c.lineWidth = 2;
+    for (let x = belt - 24; x < INC; x += 24) { c.beginPath(); c.moveTo(x, 114); c.lineTo(x, 130); c.stroke(); }
+    c.fillStyle = "rgba(244,67,54,.2)"; c.fillRect(INC - 44, 112, 44, 20);   // zona de peligro
+
+    // Residuos sobre la cinta (el que se arrastra se dibuja al final, encima de todo)
+    c.font = "28px serif"; c.textAlign = "center";
+    it.forEach(o => { if (o !== drag) c.fillText(o.e, o.x, o.y); });
+
+    // Incinerador (tapa a los residuos que "entran")
+    c.fillStyle = "#37474f"; rr(INC, 66, CW - INC + 8, 76, 8); c.fill();
+    c.fillStyle = "#455a64"; c.fillRect(CW - 26, 44, 16, 24);
+    c.fillStyle = "#1b1b1b"; rr(INC + 2, 84, 34, 48, 6); c.fill();
+    c.font = (26 + Math.sin(reloj * 12) * 3).toFixed(1) + "px serif"; c.textAlign = "center";
+    c.fillText("🔥", INC + 19, 110);
+    for (let i = 0; i < 3; i++) {
+      const k = (reloj * .8 + i / 3) % 1;
+      c.fillStyle = "rgba(120,120,120," + (.5 * (1 - k)).toFixed(2) + ")";
+      c.beginPath(); c.arc(302 + Math.sin(k * 6 + i) * 4, 44 - k * 14, 3 + k * 5, 0, 7); c.fill();
+    }
+
+    // Contenedores
+    BINS.forEach(b => {
+      const T = TIPOS[b.k], hov = drag && binEn(drag) === b, dy = hov ? -5 : 0, bx = b.x + b.w / 2;
+      c.fillStyle = "rgba(0,0,0,.12)"; c.beginPath(); c.ellipse(bx, b.y + b.h + 2, b.w / 2, 5, 0, 0, 7); c.fill();
+      c.fillStyle = T.col; rr(b.x, b.y + 12 + dy, b.w, b.h - 12, 10); c.fill();
+      c.fillStyle = T.dk; rr(b.x - 4, b.y + dy, b.w + 8, 14, 6); c.fill();
+      if (hov) { c.strokeStyle = "#fff"; c.lineWidth = 4; rr(b.x, b.y + 12 + dy, b.w, b.h - 12, 10); c.stroke(); }
+      const fl = flash.find(q => q.b === b);
+      if (fl) {
+        c.fillStyle = (fl.ok ? "rgba(255,255,255," : "rgba(244,67,54,") + (.6 * (1 - fl.t / .4)).toFixed(2) + ")";
+        rr(b.x, b.y + 12 + dy, b.w, b.h - 12, 10); c.fill();
+      }
+      c.textAlign = "center";
+      c.font = "30px serif"; c.fillStyle = "#fff"; c.fillText(T.ic, bx, b.y + 44 + dy);
+      c.font = "700 13px " + FONT; c.fillText(T.n, bx, b.y + 74 + dy);
+    });
+
+    // Aviso didáctico (a qué contenedor iba el residuo)
+    if (aviso) {
+      c.globalAlpha = Math.min(1, aviso.t * 2);
+      c.font = "600 13px " + FONT; c.fillStyle = "#263238"; c.textAlign = "center";
+      c.fillText(aviso.txt, CW / 2, 172);
+      c.globalAlpha = 1;
+    }
+
+    // Residuo agarrado
+    if (drag) {
+      c.save();
+      c.shadowColor = "rgba(0,0,0,.35)"; c.shadowBlur = 10;
+      c.font = "36px serif"; c.textAlign = "center";
+      c.fillText(drag.e, drag.x, drag.y);
+      c.restore();
+    }
+
+    // Textos flotantes (+1, −1, racha…)
+    pop.forEach(q => {
+      c.globalAlpha = Math.max(0, 1 - q.t / 1.1);
+      c.font = "700 15px " + FONT; c.fillStyle = q.col; c.textAlign = "center";
+      c.fillText(q.txt, q.x, q.y - q.t * 30);
+    });
+    c.globalAlpha = 1;
+
+    // Ayuda inicial
+    if (DUR - t < 8 && pts === 0) {
+      c.font = "600 12px " + FONT; c.fillStyle = "#546e7a"; c.textAlign = "center";
+      c.fillText("Arrastrá cada residuo a su contenedor ↓", 130, 64);
+    }
+
+    // Marcador
+    c.font = "600 15px " + FONT; c.fillStyle = "#263238";
+    c.textAlign = "left";   c.fillText("⭐ " + pts, 8, 16);
+    c.textAlign = "center"; c.fillText("❤️".repeat(vidas) + "🖤".repeat(VIDAS - vidas), CW / 2, 16);
+    c.textAlign = "right";  c.fillText("⏱ " + Math.max(0, Math.ceil(t)) + "s", CW - 8, 16);
+    if (racha >= 2) { c.font = "600 12px " + FONT; c.textAlign = "left"; c.fillText("Racha x" + racha, 8, 36); }
+
+    // Destello rojo cuando algo se quema
+    if (quemado > 0) { c.fillStyle = "rgba(255,87,34," + (quemado * .6).toFixed(2) + ")"; c.fillRect(0, 0, CW, CH); }
+  };
+
+  const f = n => {
+    if (!vivo) return;
+    const dt = Math.min((n - u) / 1000, .05);
+    u = n; t -= dt; sp -= dt; reloj += dt;
+
+    // La cinta se acelera y los residuos aparecen cada vez más seguido
+    const prog = Math.min(1, (DUR - t) / DUR), v = 40 + 50 * prog;
+    belt = (belt + v * dt) % 24;
+    if (quemado > 0) quemado -= dt;
+    if (sp <= 0) { sp = 1.8 - .8 * prog; aparece(); }
+
+    it = it.filter(o => {
+      if (o === drag) return true;          // el que tenés agarrado no avanza
+      o.x += v * dt;
+      if (o.x > INC) { quema(o); return false; }
+      return true;
+    });
+    pop = pop.filter(q => (q.t += dt) < 1.1);
+    flash = flash.filter(q => (q.t += dt) < .4);
+    if (aviso && (aviso.t -= dt) <= 0) aviso = null;
+
+    dibuja();
+    if (t <= 0 || vidas <= 0) return fin();
+    raf = requestAnimationFrame(f);
+  };
+
+  raf = requestAnimationFrame(f);
+}
+
+// ---- Minijuego 4: Tuberías 🚰 ----
+function juegoTuberias(p) {
+  const CW = 320, CH = 280;
+  p.innerHTML = `
+    <canvas id="cv-tub" width="${CW}" height="${CH}"></canvas>
+    <div class="info" style="font-size:0.8rem; text-align:left; line-height:1.3; margin-top:6px;">
+      <p style="margin:2px 0;"><b>Objetivo:</b> Tocá las piezas para girarlas y llevar el agua limpia 🚰 al huerto 🌱.</p>
+      <p style="margin:2px 0; font-style:italic;">¡Hacelo antes de que se vacíe el tanque de reserva para ganar ❄️!</p>
+    </div>
+  `;
+
+  const cv = $("cv-tub"), c = cv.getContext("2d");
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = CW * dpr; cv.height = CH * dpr; 
+  c.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+  const cols = 5, rows = 5, cs = 48, offX = 40, offY = 32;
+  let grid = Array.from({length: rows}, () => Array(cols).fill(null));
+
+  let cx = 0, cy = 0;
+  let path = [{x: 0, y: 0}];
+  while (cx < cols - 1 || cy < rows - 1) {
+    if (cx === cols - 1) cy++;
+    else if (cy === rows - 1) cx++;
+    else if (Math.random() < 0.5) cx++;
+    else cy++;
+    path.push({x: cx, y: cy});
+  }
+
+  for (let i = 0; i < path.length; i++) {
+    let pt = path[i];
+    let prev = i > 0 ? path[i-1] : {x: -1, y: 0};
+    let next = i < path.length - 1 ? path[i+1] : {x: cols, y: rows-1};
+    
+    let conn = [0, 0, 0, 0];
+    if (prev.y < pt.y || next.y < pt.y) conn[0] = 1;
+    if (prev.x > pt.x || next.x > pt.x) conn[1] = 1;
+    if (prev.y > pt.y || next.y > pt.y) conn[2] = 1;
+    if (prev.x < pt.x || next.x < pt.x) conn[3] = 1;
+
+    if (Math.random() < 0.3) conn[Math.floor(Math.random()*4)] = 1;
+    grid[pt.y][pt.x] = { conn, rot: Math.floor(Math.random() * 4) };
+  }
+
+  const shapes = [[1, 0, 1, 0], [1, 1, 0, 0], [1, 1, 1, 0], [1, 1, 1, 1]];
+  for (let y = 0; y < rows; y++) {
+    for (let x = 0; x < cols; x++) {
+      if (!grid[y][x]) {
+        grid[y][x] = { conn: [...shapes[Math.floor(Math.random() * shapes.length)]], rot: Math.floor(Math.random() * 4) };
+      }
+    }
+  }
+
+  const getConn = (celda) => [
+    celda.conn[(0 - celda.rot + 4) % 4],
+    celda.conn[(1 - celda.rot + 4) % 4],
+    celda.conn[(2 - celda.rot + 4) % 4],
+    celda.conn[(3 - celda.rot + 4) % 4]
+  ];
+
+  let MAX_T = 45, t = MAX_T, vivo = true, raf, u = performance.now();
+  let win = false;
+
+  const lp = e => { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) * CW / r.width, y: (e.clientY - r.top) * CH / r.height }; };
+  cv.addEventListener("pointerdown", e => {
+    if (!vivo) return;
+    const pt = lp(e);
+    let col = Math.floor((pt.x - offX) / cs);
+    let row = Math.floor((pt.y - offY) / cs);
+    if (col >= 0 && col < cols && row >= 0 && row < rows) {
+      grid[row][col].rot = (grid[row][col].rot + 1) % 4;
+    }
+  });
+
+  parar = () => { vivo = false; cancelAnimationFrame(raf); parar = () => {}; };
+
+  const fin = (gano) => {
+    parar();
+    let pts = 0;
+    if (gano) pts = t > (MAX_T / 2) ? 200 : 100;
+    
+    if (pts > 0) s.monedas += pts;
+    s.diversion = (typeof lim === 'function') ? lim(s.diversion + 30) : Math.min(100, s.diversion + 30);
+    s.energia = (typeof lim === 'function') ? lim(s.energia - 15) : Math.max(0, s.energia - 15);
+    s.limpieza = (typeof lim === 'function') ? lim(s.limpieza - 5) : Math.max(0, s.limpieza - 5);
+    
+    if (typeof gana === 'function') gana(pts > 0 ? pts * 2 : 0);
+    
+    decir(gano ? "¡Agua conectada! Sobró reserva y ganaste " + pts + " ❄️" : "¡Se vació el tanque! El huerto no se regó.");
+    guardar(); pintar(); render();
+  };
+
+  const dibuja = () => {
+    c.fillStyle = "#e0f2f1"; c.fillRect(0, 0, CW, CH);
+
+    const px = Math.max(0, t / MAX_T);
+    c.fillStyle = "#b0bec5"; c.beginPath(); 
+    if (c.roundRect) c.roundRect(10, 10, 300, 14, 7); else c.rect(10, 10, 300, 14); 
+    c.fill();
+    
+    c.fillStyle = px < 0.25 ? "#f44336" : "#0288d1"; 
+    c.beginPath(); 
+    if (c.roundRect) c.roundRect(11, 11, 298 * px, 12, 6); else c.rect(11, 11, 298 * px, 12); 
+    c.fill();
+    
+    c.font = "600 11px Fredoka,sans-serif"; c.fillStyle = "#fff"; c.textAlign="center"; c.fillText("TANQUE DE RESERVA", CW/2, 21);
+
+    c.font = "26px serif"; c.textAlign="center"; c.textBaseline="middle";
+    c.fillText("🚰", offX - 20, offY + cs/2);
+    c.fillText("🌱", offX + cols*cs + 20, offY + (rows-1)*cs + cs/2);
+
+    let water = Array.from({length: rows}, () => Array(cols).fill(false));
+    win = false;
+    let q = [];
+    
+    if (getConn(grid[0][0])[3]) { q.push({x:0, y:0}); water[0][0] = true; }
+
+    let dx = [0, 1, 0, -1], dy = [-1, 0, 1, 0];
+    while(q.length > 0) {
+      let curr = q.shift();
+      let conn = getConn(grid[curr.y][curr.x]);
+      
+      for (let d = 0; d < 4; d++) {
+        if (conn[d]) {
+          if (curr.x === cols-1 && curr.y === rows-1 && d === 1) win = true;
+          
+          let nx = curr.x + dx[d], ny = curr.y + dy[d];
+          if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && !water[ny][nx]) {
+            if (getConn(grid[ny][nx])[(d + 2) % 4]) {
+              water[ny][nx] = true;
+              q.push({x: nx, y: ny});
+            }
+          }
+        }
+      }
+    }
+
+    for (let y = 0; y < rows; y++) {
+      for (let x = 0; x < cols; x++) {
+        let cell = grid[y][x], isWater = water[y][x];
+        c.save();
+        c.translate(offX + x * cs + cs/2, offY + y * cs + cs/2);
+
+        c.fillStyle = "rgba(0,0,0,0.04)";
+        c.fillRect(-cs/2 + 2, -cs/2 + 2, cs - 4, cs - 4);
+
+        c.rotate(cell.rot * Math.PI / 2);
+
+        c.lineWidth = 14; c.lineCap = 'square'; c.strokeStyle = "#455a64";
+        c.beginPath();
+        if (cell.conn[0]) { c.moveTo(0,0); c.lineTo(0, -cs/2); }
+        if (cell.conn[1]) { c.moveTo(0,0); c.lineTo(cs/2, 0); }
+        if (cell.conn[2]) { c.moveTo(0,0); c.lineTo(0, cs/2); }
+        if (cell.conn[3]) { c.moveTo(0,0); c.lineTo(-cs/2, 0); }
+        c.stroke();
+
+        c.lineWidth = 10; c.strokeStyle = "#b0bec5"; c.stroke();
+
+        if (isWater) {
+          c.lineWidth = 6; c.strokeStyle = "#03a9f4"; c.stroke();
+          c.fillStyle = "#03a9f4";
+        } else {
+          c.fillStyle = "#b0bec5";
+        }
+        
+        c.beginPath(); c.arc(0, 0, isWater ? 4 : 5, 0, 7); c.fill();
+        c.restore();
+      }
+    }
+  };
+
+  const f = n => {
+    if (!vivo) return;
+    const dt = (n - u) / 1000; u = n;
+    t -= dt;
+    dibuja();
+    
+    if (win) {
+      setTimeout(() => fin(true), 500);
+      vivo = false;
+    } else if (t <= 0) {
+      fin(false);
+    } else {
+      raf = requestAnimationFrame(f);
+    }
+  };
+  
+  raf = requestAnimationFrame(f);
+}
+
 let sure=0;
 const A={
   comer(i){const[n,p,h,d,e]=COMIDA[i];
@@ -327,10 +762,12 @@ const A={
   revivir(){s.muerto=false;ST.forEach(k=>s[k]=50);anim("salto");decir("¡Polo volvió!");pintar()},
   jugarReciclaje(){if(s.energia<15)return decir("Polo está muy cansado.");juego(panel)},
   jugarFocos(){if(s.energia<15)return decir("Polo está muy cansado.");juegoFocos(panel)},
+  jugarCinta(){if(s.energia<15)return decir("Polo está muy cansado.");juegoCinta(panel)},
+  jugarTuberias(){if(s.energia<15)return decir("Polo está muy cansado.");juegoTuberias(panel)},
   compostar(){const n=s.org;if(!n)return decir("No tenés restos orgánicos. Juntá 🍌🍎🥕 del agua.");s.org=0;s.comp+=n;s.monedas+=n*2;emite("🌱",Math.min(n*2,10),{y:.3,up:80,g:80,v:200,l:1.4});decir("¡Compost listo con "+n+" resto"+(n>1?"s":"")+"! +"+n*2+" ❄️");gana(n*2);pintar()},
   ropa(k){const[e,n,c]=ROPA[k],r=s.ropa;if(!r[k]){if(s.pla<c)return decir("Te faltan plásticos: "+n+" cuesta "+c+" 🥤.");s.pla-=c;r[k]=2;emite(e,6,{y:.3,up:90,g:60,l:1.4});anim("baila",1500);decir("¡Plástico → ropa nueva: "+n+"!");gana(5)}else{r[k]=3-r[k];decir("Polo se "+(r[k]==2?"puso":"sacó")+": "+n)}pintar()}
 };
-panel.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;A[b.dataset.a](b.dataset.x);guardar();render()});
+panel.addEventListener("click",e=>{const b=e.target.closest("button");if(!b||!A[b.dataset.a])return;A[b.dataset.a](b.dataset.x);guardar();render()});
 const irA=r=>{sala=r;pintar();render()};
 $("nav").addEventListener("click",e=>{const b=e.target.closest("button");if(b)irA(b.dataset.room)});
 

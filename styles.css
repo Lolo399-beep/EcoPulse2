@@ -206,3 +206,15 @@ body{height:100%;background:#a9dcf0}
   from { transform: scale(0.96); box-shadow: 0 0 10px #ffeb3b; }
   to { transform: scale(1.04); box-shadow: 0 0 20px #ffee58; }
 }
+
+/* ---- Minijuego 3: Cinta de Residuos ---- */
+#Polo #cv-cinta {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+#Polo #cv-cinta:active {
+  cursor: grabbing;
+}
