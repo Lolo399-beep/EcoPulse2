@@ -280,3 +280,16 @@ body.dormido {
   background: #ffffff;
   color: var(--noche);
 }
+#Polo .bas {
+  cursor: pointer;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: nk-pop .4s, nk-boya 2.6s .4s ease-in-out infinite;
+  outline: none; /* Elimina el borde/cuadrado al enfocar */
+  -webkit-tap-highlight-color: transparent; /* Quita el destello/recuadro en dispositivos móviles */
+}
+
+#Polo .bas:focus,
+#Polo .bas:focus-visible {
+  outline: none; /* Asegura que no se dibuje el contorno en ningún estado de foco */
+}
