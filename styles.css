@@ -218,3 +218,65 @@ body{height:100%;background:#a9dcf0}
 #Polo #cv-cinta:active {
   cursor: grabbing;
 }
+
+#Polo #bear {
+  width: min(240px, 66%);
+  cursor: pointer;
+  outline: none;
+}
+
+#Polo #bear:focus,
+#Polo #bear:focus-visible {
+  outline: none;
+}
+
+/* Transición suave para el fondo del cuerpo y contenedor */
+body {
+  height: 100%;
+  background: #a9dcf0;
+  transition: background 0.6s ease;
+}
+
+body.dormido {
+  background: #0a192f; /* Fondo azul marino exterior */
+}
+
+#Polo {
+  margin: 0;
+  min-height: 100%;
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  font-family: "Fredoka", system-ui, sans-serif;
+  color: var(--noche);
+  background: linear-gradient(180deg, #a9dcf0, #e9f8fd);
+  transition: background 0.6s ease, color 0.6s ease;
+}
+
+/* Modo nocturno cuando Polo duerme */
+#Polo.dormido {
+  background: linear-gradient(180deg, #0a192f, #14283f);
+  color: #ffffff; /* Textos generales en blanco */
+}
+
+/* EXCEPTO el nivel y las monedas, que se quedan con su color oscuro original */
+#Polo.dormido #nivel, 
+#Polo.dormido #monedas {
+  color: var(--noche); /* O el color oscuro que usabas antes, ej: #333 o #111 */
+}
+
+/* Fondo de las barras de estado visible en modo oscuro */
+#Polo.dormido .bar {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Ajuste de botones de navegación nocturnos */
+#Polo.dormido nav button:not(.on) {
+  background: rgba(255, 255, 255, 0.18);
+  color: #ffffff;
+}
+
+#Polo.dormido nav button.on {
+  background: #ffffff;
+  color: var(--noche);
+}

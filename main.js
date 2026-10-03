@@ -1,10 +1,10 @@
 (()=>{
 const root=document.getElementById("Polo")||document,K="Polo-v2",$=id=>root.querySelector("#"+id),lim=n=>Math.max(0,Math.min(100,n));
 const ST=["hambre","energia","diversion","limpieza"],TICK=4000;
-const COMIDA=[["Pescado",0,25,0,"🐟"],["Salmón",5,40,5,"🍣"],["Helado",8,25,20,"🍦"],["Frutillas",3,20,10,"🍓"],["Camarones",6,35,8,"🦐"],["Torta",10,30,30,"🍰"]];
+const COMIDA=[["Pescado",0,5,0,"🐟"],["Salmón",100,20,5,"🍣"],["Helado",150,25,20,"🍦"],["Frutillas",200,30,10,"🍓"],["Camarones",250,35,8,"🦐"],["Torta",300,50,30,"🍰"]];
 const ROPA={gorro:["🧢","Gorro",3],bufanda:["🧣","Bufanda",5],lentes:["🕶️","Lentes",7]};
 const FAV=new Date().getDate()%COMIDA.length;
-const nuevo=()=>({hambre:55,energia:80,diversion:80,limpieza:80,monedas:20,xp:0,org:0,pla:0,comp:0,ropa:{gorro:0,bufanda:0,lentes:0},dormido:false,muerto:false,ultimo:Date.now()});
+const nuevo=()=>({hambre:55,energia:80,diversion:80,limpieza:80,monedas:250,xp:0,org:0,pla:0,comp:0,ropa:{gorro:0,bufanda:0,lentes:0},dormido:false,muerto:false,ultimo:Date.now()});
 let s;try{s={...nuevo(),...JSON.parse(localStorage.getItem(K))}}catch{s=nuevo()}
 const guardar=()=>{try{localStorage.setItem(K,JSON.stringify(s))}catch{}};
 const bear=$("bear"),stage=$("stage"),msg=$("msg"),mouth=$("mouth"),panel=$("panel");
@@ -37,6 +37,10 @@ function render(){
   $("nivel").textContent="Nivel "+nivel();$("monedas").textContent=s.monedas+" ❄️";
   stage.dataset.room=sala;$("mugre").style.opacity=s.limpieza<60?(60-s.limpieza)/60:0;stage.classList.toggle("noche",s.dormido);
   bear.classList.toggle("dormido",s.dormido);bear.classList.toggle("muerto",s.muerto);
+
+  root.classList.toggle("dormido", s.dormido);
+  document.body.classList.toggle("dormido", s.dormido);
+
   const p=prom();
   mouth.setAttribute("d",s.muerto?"M90 120 h20":p>60?"M86 113 q14 14 28 0":p>30?"M90 118 q10 2 20 0":"M88 122 q12 -10 24 0");
   root.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.room==sala));
@@ -102,12 +106,12 @@ function juego(p){
   const fin = () => {
     const g = Math.max(0, pts);
     parar();
-    s.monedas += g;
+    s.monedas += g * 10;
     s.diversion = lim(s.diversion + 30);
     s.energia = lim(s.energia - 15);
     s.limpieza = lim(s.limpieza - 5);
     gana(g * 2);
-    decir("¡Ecorreciclaje completado! +" + g + " monedas");
+    decir("¡Ecorreciclaje completado! +" + g * 10 + " monedas");
     guardar();
     pintar();
     render();
@@ -426,13 +430,13 @@ function juegoCinta(p) {
   const fin = () => {
     const g = Math.max(0, pts), ganoCinta = vidas > 0;
     parar();
-    s.monedas += g;
+    s.monedas += g * 10;
     s.diversion = lim(s.diversion + 30);
     s.energia = lim(s.energia - 15);
     s.limpieza = lim(s.limpieza - 5);
     gana(g * 2);
     decir(ganoCinta
-      ? "¡Cinta despejada! " + ok + " residuos bien clasificados, +" + g + " ❄️"
+      ? "¡Cinta despejada! " + ok + " residuos bien clasificados, +" + g * 10 + " ❄️"
       : "¡El incinerador ganó esta vez! " + ok + " aciertos, +" + g + " ❄️");
     guardar();
     pintar();
@@ -760,10 +764,10 @@ const A={
   dormir(){if(!s.dormido&&s.energia>=95)return decir("Polo no tiene sueño todavía.");s.dormido=!s.dormido;if(!s.dormido)gana(4);decir(s.dormido?"Luz apagada. Buenas noches, Polo…":"¡Buen día, Polo!");pintar()},
   pocion(){if(!sure){sure=1;setTimeout(()=>sure=0,3000);return decir("¿Seguro? Tocá la poción otra vez para confirmar.")}sure=0;s.muerto=true;s.dormido=false;burbujas();decir("Polo se fue al cielo polar…");pintar()},
   revivir(){s.muerto=false;ST.forEach(k=>s[k]=50);anim("salto");decir("¡Polo volvió!");pintar()},
-  jugarReciclaje(){if(s.energia<15)return decir("Polo está muy cansado.");juego(panel)},
-  jugarFocos(){if(s.energia<15)return decir("Polo está muy cansado.");juegoFocos(panel)},
-  jugarCinta(){if(s.energia<15)return decir("Polo está muy cansado.");juegoCinta(panel)},
-  jugarTuberias(){if(s.energia<15)return decir("Polo está muy cansado.");juegoTuberias(panel)},
+  jugarReciclaje(){if(s.energia<15)return decir("Polo está muy cansado.");if(s.monedas<100)return decir("Te faltan monedas.");s.monedas-=100;juego(panel)},
+  jugarFocos(){if(s.energia<15)return decir("Polo está muy cansado.");if(s.monedas<100)return decir("Te faltan monedas.");s.monedas-=100;juegoFocos(panel)},
+  jugarCinta(){if(s.energia<15)return decir("Polo está muy cansado.");if(s.monedas<100)return decir("Te faltan monedas.");s.monedas-=100;juegoCinta(panel)},
+  jugarTuberias(){if(s.energia<15)return decir("Polo está muy cansado.");if(s.monedas<100)return decir("Te faltan monedas.");s.monedas-=100;juegoTuberias(panel)},
   compostar(){const n=s.org;if(!n)return decir("No tenés restos orgánicos. Juntá 🍌🍎🥕 del agua.");s.org=0;s.comp+=n;s.monedas+=n*2;emite("🌱",Math.min(n*2,10),{y:.3,up:80,g:80,v:200,l:1.4});decir("¡Compost listo con "+n+" resto"+(n>1?"s":"")+"! +"+n*2+" ❄️");gana(n*2);pintar()},
   ropa(k){const[e,n,c]=ROPA[k],r=s.ropa;if(!r[k]){if(s.pla<c)return decir("Te faltan plásticos: "+n+" cuesta "+c+" 🥤.");s.pla-=c;r[k]=2;emite(e,6,{y:.3,up:90,g:60,l:1.4});anim("baila",1500);decir("¡Plástico → ropa nueva: "+n+"!");gana(5)}else{r[k]=3-r[k];decir("Polo se "+(r[k]==2?"puso":"sacó")+": "+n)}pintar()}
 };
