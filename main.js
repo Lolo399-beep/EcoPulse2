@@ -2,10 +2,11 @@
 const root=document.getElementById("Polo")||document,K="Polo-v2",$=id=>root.querySelector("#"+id),lim=n=>Math.max(0,Math.min(100,n));
 const ST=["hambre","energia","diversion","limpieza"],TICK=4000;
 const COMIDA=[["Pescado",0,5,0,"🐟"],["Salmón",100,20,5,"🍣"],["Helado",150,25,20,"🍦"],["Frutillas",200,30,10,"🍓"],["Camarones",250,35,8,"🦐"],["Torta",300,50,30,"🍰"]];
-const ROPA={gorro:["🧢","Gorro",3],bufanda:["🧣","Bufanda",5],lentes:["🕶️","Lentes",7]};
+const ROPA={gorro:["🧢","Gorro",3],bufanda:["🧣","Bufanda",5],lentes:["🕶️","Lentes",7],
+  mono:["🎀","Moño",4],auriculares:["🎧","Auriculares",6],galera:["🎩","Galera",8],
+  remera:["👕","Remera",9],corona:["👑","Corona",10],capa:["🦸","Capa",12]};
 const FAV=new Date().getDate()%COMIDA.length;
-const nuevo=()=>({hambre:55,energia:80,diversion:80,limpieza:80,monedas:250,xp:0,org:0,pla:0,comp:0,ropa:{gorro:0,bufanda:0,lentes:0},dormido:false,muerto:false,ultimo:Date.now()});
-let s;try{s={...nuevo(),...JSON.parse(localStorage.getItem(K))}}catch{s=nuevo()}
+const nuevo=()=>({hambre:55,energia:80,diversion:80,limpieza:80,monedas:250,xp:0,org:0,pla:0,comp:0,ropa:{gorro:0,bufanda:0,lentes:0,mono:0,auriculares:0,galera:0,remera:0,corona:0,capa:0},dormido:false,muerto:false,ultimo:Date.now()});let s;try{s={...nuevo(),...JSON.parse(localStorage.getItem(K))}}catch{s=nuevo()}
 const guardar=()=>{try{localStorage.setItem(K,JSON.stringify(s))}catch{}};
 const bear=$("bear"),stage=$("stage"),msg=$("msg"),mouth=$("mouth"),panel=$("panel");
 let sala="cocina",parar=()=>{};
@@ -751,6 +752,8 @@ function juegoTuberias(p) {
 }
 
 let sure=0;
+const SLOT={gorro:"cabeza",corona:"cabeza",galera:"cabeza"};
+const sacaMismoSlot=k=>{if(!SLOT[k])return;Object.keys(SLOT).forEach(o=>{if(o!=k&&SLOT[o]==SLOT[k]&&s.ropa[o]==2)s.ropa[o]=1})};
 const A={
   comer(i){const[n,p,h,d,e]=COMIDA[i];
     if(s.hambre>=95){anim("no",1000);return decir("Polo está lleno. Esperá a que le baje el hambre.")}
@@ -769,8 +772,7 @@ const A={
   jugarCinta(){if(s.energia<15)return decir("Polo está muy cansado.");if(s.monedas<100)return decir("Te faltan monedas.");s.monedas-=100;juegoCinta(panel)},
   jugarTuberias(){if(s.energia<15)return decir("Polo está muy cansado.");if(s.monedas<100)return decir("Te faltan monedas.");s.monedas-=100;juegoTuberias(panel)},
   compostar(){const n=s.org;if(!n)return decir("No tenés restos orgánicos. Juntá 🍌🍎🥕 del agua.");s.org=0;s.comp+=n;s.monedas+=n*2;emite("🌱",Math.min(n*2,10),{y:.3,up:80,g:80,v:200,l:1.4});decir("¡Compost listo con "+n+" resto"+(n>1?"s":"")+"! +"+n*2+" ❄️");gana(n*2);pintar()},
-  ropa(k){const[e,n,c]=ROPA[k],r=s.ropa;if(!r[k]){if(s.pla<c)return decir("Te faltan plásticos: "+n+" cuesta "+c+" 🥤.");s.pla-=c;r[k]=2;emite(e,6,{y:.3,up:90,g:60,l:1.4});anim("baila",1500);decir("¡Plástico → ropa nueva: "+n+"!");gana(5)}else{r[k]=3-r[k];decir("Polo se "+(r[k]==2?"puso":"sacó")+": "+n)}pintar()}
-};
+ropa(k){const[e,n,c]=ROPA[k],r=s.ropa;if(!r[k]){if(s.pla<c)return decir("Te faltan plásticos: "+n+" cuesta "+c+" 🥤.");s.pla-=c;r[k]=2;emite(e,6,{y:.3,up:90,g:60,l:1.4});anim("baila",1500);decir("¡Plástico → ropa nueva: "+n+"!");gana(5)}else{r[k]=3-r[k];decir("Polo se "+(r[k]==2?"puso":"sacó")+": "+n)}if(r[k]==2)sacaMismoSlot(k);pintar()}};
 panel.addEventListener("click",e=>{const b=e.target.closest("button");if(!b||!A[b.dataset.a])return;A[b.dataset.a](b.dataset.x);guardar();render()});
 const irA=r=>{sala=r;pintar();render()};
 $("nav").addEventListener("click",e=>{const b=e.target.closest("button");if(b)irA(b.dataset.room)});
