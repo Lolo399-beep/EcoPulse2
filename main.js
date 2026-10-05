@@ -11,7 +11,8 @@ const guardar=()=>{try{localStorage.setItem(K,JSON.stringify(s))}catch{}};
 const bear=$("bear"),stage=$("stage"),msg=$("msg"),mouth=$("mouth"),panel=$("panel");
 let sala="cocina",parar=()=>{};
 const decir=t=>msg.textContent=t;
-const gana=x=>{};
+const nivel=()=>1+Math.floor(s.xp/60);
+const gana=x=>{const a=nivel();s.xp+=x;if(nivel()>a){s.monedas+=10;decir("¡Nivel "+nivel()+"! +10 monedas");anim("baila",2000);emite("✨",10,{v:260,up:120,g:120,l:1.6})}};
 const prom=()=>ST.reduce((a,k)=>a+s[k],0)/4;
 
 function tiempo(n){
@@ -34,7 +35,7 @@ function burbujas(){const g=$("bubbles");for(let i=0;i<5;i++){const c=document.c
 
 function render(){
   ST.forEach(k=>{const b=$("b-"+k);b.style.width=s[k]+"%";b.classList.toggle("bajo",s[k]<=30)});
-  $("monedas").textContent=s.monedas+" ❄️";
+  $("nivel").textContent="Nivel "+nivel();$("monedas").textContent=s.monedas+" ❄️";
   stage.dataset.room=sala;$("mugre").style.opacity=s.limpieza<60?(60-s.limpieza)/60:0;stage.classList.toggle("noche",s.dormido);
   bear.classList.toggle("dormido",s.dormido);bear.classList.toggle("muerto",s.muerto);
 
