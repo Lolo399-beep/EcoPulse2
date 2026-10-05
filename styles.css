@@ -293,3 +293,6 @@ body.dormido {
 #Polo .bas:focus-visible {
   outline: none; /* Asegura que no se dibuje el contorno en ningún estado de foco */
 }
+#Polo .full {
+  grid-column: 1 / -1;
+}

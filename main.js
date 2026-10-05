@@ -54,8 +54,7 @@ function pintar(){
   panel.innerHTML={
     cocina:COMIDA.map((c,i)=>`<div class="food" data-i="${i}" data-e="${c[4]}"><b>${c[4]}</b>${c[0]}${i==FAV?" ⭐":""}<small>${c[1]?c[1]+" ❄️":"gratis"}</small></div>`).join("")+'<p class="info">Arrastrá la comida hasta la boca de Polo (o tocala).</p>',
     bano:'<div class="jabon"><b>🧼</b>Jabón<small>frotalo sobre Polo</small></div>'+B("banar","Ducha rápida<small>gratis</small>")+'<p class="info">Arrastrá el jabón y frotá a Polo hasta dejarlo limpio.</p>',
-    cuarto:B("dormir","Apagar luz y dormir<small>recupera energía</small>"),
-    juego: 
+    cuarto: B("dormir", "Apagar luz y dormir<small>recupera energía</small>", "", "full"), juego: 
     B("jugarTuberias", "🚰 Tuberías<small>−15 energía, regá el huerto</small>", "", "azul") +
     B("jugarReciclaje", "♻️️ Ecorreciclaje<small>−15 energía, ganás ❄️</small>") +
     B("jugarFocos", "💡 Apaga Focos<small>−15 energía, 2 min de rapidez</small>", "", "rosa") +
@@ -66,10 +65,11 @@ function pintar(){
 }
 
 function juego(p){
-  const RECICLABLES=["🍾","📰","📦","🥫","🥤"];
-  const NO_RECICLABLES=["🍎","🍌","🍕","🧻"];
+  // Lista de ítems reciclables y no reciclables con emojis
+  const RECICLABLES = ["🍾", "📰", "📦", "🥫", "🥤"];
+  const NO_RECICLABLES = ["🍎", "🍌", "🍕", "🧻"];
 
-  p.innerHTML=`
+  p.innerHTML = `
     <canvas id="cv" width="320" height="280"></canvas>
     <div class="info" style="font-size:0.8rem; text-align:left; line-height:1.3; margin-top:6px;">
       <p style="margin:2px 0;"><b>🟢 RECICLABLES (+1 pt):</b> 🍾 Botellas, 📰 Papel, 📦 Cartón, 🥫 Latas, 🥤 Plásticos</p>
@@ -78,33 +78,108 @@ function juego(p){
     </div>
   `;
 
-  const cv=$("cv"),c=cv.getContext("2d"),ks={};
-  let x=160,pts=0,t=20,it=[],u=performance.now(),sp=0,vivo=true;
+  const cv = $("cv"), c = cv.getContext("2d"), ks = {};
+  let x = 160, pts = 0, t = 20, it = [], u = performance.now(), sp = 0, vivo = true;
 
-  const mv=e=>{const r=cv.getBoundingClientRect();x=(e.clientX-r.left)*320/r.width;};
-  cv.addEventListener("pointermove",mv);cv.addEventListener("pointerdown",mv);
-
-  const kd=e=>{ks[e.key]=1;if(e.key.startsWith("Arrow"))e.preventDefault();};
-  const ku=e=>delete ks[e.key];
-  addEventListener("keydown",kd);addEventListener("keyup",ku);
-
-  parar=()=>{vivo=false;removeEventListener("keydown",kd);removeEventListener("keyup",ku);parar=()=>{}};
-
-  const fin=()=>{const g=Math.max(0,pts);parar();s.monedas+=g*10;s.diversion=lim(s.diversion+30);s.energia=lim(s.energia-15);s.limpieza=lim(s.limpieza-5);gana(g*2);decir("¡Ecorreciclaje completado! +"+g*10+" monedas");guardar();pintar();render();};
-
-  const f=n=>{
-    if(!vivo)return;
-    const dt=Math.min((n-u)/1000,.05);u=n;t-=dt;sp-=dt;
-    if(ks.ArrowLeft)x-=260*dt;if(ks.ArrowRight)x+=260*dt;x=Math.max(30,Math.min(290,x));
-    if(sp<=0){sp=.45;const esRecic=Math.random()>0.35;const list=esRecic?RECICLABLES:NO_RECICLABLES;const emoji=list[Math.floor(Math.random()*list.length)];it.push({x:20+Math.random()*280,y:-10,reciclable:esRecic,emoji})}
-    c.fillStyle="#e8f5e9";c.fillRect(0,0,320,280);
-    c.fillStyle="#2e7d32";c.fillRect(x-22,242,44,34);
-    c.fillStyle="#1b5e20";c.fillRect(x-26,236,52,7);
-    c.font="18px serif";c.fillStyle="#ffffff";c.textAlign="center";c.fillText("♻️️",x,265);
-    it=it.filter(o=>{o.y+=(110+(20-t)*4)*dt;if(Math.abs(o.x-x)<30&&o.y>230&&o.y<275){pts+=o.reciclable?1:-1;return false}c.font="26px serif";c.fillText(o.emoji,o.x,o.y);return o.y<300;});
-    c.font="600 16px Fredoka,sans-serif";c.fillStyle="#1b5e20";c.textAlign="left";c.fillText("♻️ Puntos: "+pts+"   ⏱ "+Math.ceil(t)+"s",8,22);
-    t>0?requestAnimationFrame(f):fin();
+  const mv = e => {
+    const r = cv.getBoundingClientRect();
+    x = (e.clientX - r.left) * 320 / r.width;
   };
+
+  cv.addEventListener("pointermove", mv);
+  cv.addEventListener("pointerdown", mv);
+
+  const kd = e => { ks[e.key] = 1; if(e.key.startsWith("Arrow")) e.preventDefault(); };
+  const ku = e => delete ks[e.key];
+
+  addEventListener("keydown", kd);
+  addEventListener("keyup", ku);
+
+  parar = () => {
+    vivo = false;
+    removeEventListener("keydown", kd);
+    removeEventListener("keyup", ku);
+    parar = () => {};
+  };
+
+  const fin = () => {
+    const g = Math.max(0, pts);
+    parar();
+    s.monedas += g * 10;
+    s.diversion = lim(s.diversion + 30);
+    s.energia = lim(s.energia - 15);
+    s.limpieza = lim(s.limpieza - 5);
+    gana(g * 2);
+    decir("¡Ecorreciclaje completado! +" + g * 10 + " monedas");
+    guardar();
+    pintar();
+    render();
+  };
+
+  const f = n => {
+    if (!vivo) return;
+    const dt = Math.min((n - u) / 1000, .05);
+    u = n; t -= dt; sp -= dt;
+
+    if (ks.ArrowLeft) x -= 260 * dt;
+    if (ks.ArrowRight) x += 260 * dt;
+    x = Math.max(30, Math.min(290, x));
+
+    // Generar nuevos objetos que caen del cielo
+    if (sp <= 0) {
+      sp = 0.45;
+      const esRecic = Math.random() > 0.35; // 65% probabilidad de reciclable
+      const list = esRecic ? RECICLABLES : NO_RECICLABLES;
+      const emoji = list[Math.floor(Math.random() * list.length)];
+      it.push({
+        x: 20 + Math.random() * 280,
+        y: -10,
+        reciclable: esRecic,
+        emoji: emoji
+      });
+    }
+
+    // Fondo verde claro ecológico
+    c.fillStyle = "#e8f5e9";
+    c.fillRect(0, 0, 320, 280);
+
+    // Dibujar Contenedor de Basura Verde (Reciclaje)
+    c.fillStyle = "#2e7d32"; // Cuerpo del tacho verde
+    c.fillRect(x - 22, 242, 44, 34);
+
+    c.fillStyle = "#1b5e20"; // Borde/tapa del tacho
+    c.fillRect(x - 26, 236, 52, 7);
+
+    // Símbolo de reciclaje ♻️ pintado en el contenedor
+    c.font = "18px serif";
+    c.fillStyle = "#ffffff";
+    c.textAlign = "center";
+    c.fillText("♻️️", x, 265);
+
+    // Mover y renderizar objetos cayendo
+    it = it.filter(o => {
+      o.y += (110 + (20 - t) * 4) * dt;
+
+      // Colisión con la boca del contenedor
+      if (Math.abs(o.x - x) < 30 && o.y > 230 && o.y < 275) {
+        pts += o.reciclable ? 1 : -1;
+        return false;
+      }
+
+      c.font = "26px serif";
+      c.fillText(o.emoji, o.x, o.y);
+      return o.y < 300;
+    });
+
+    // Marcador de Puntos y Tiempo
+    c.font = "600 16px Fredoka,sans-serif";
+    c.fillStyle = "#1b5e20";
+    c.textAlign = "left";
+    c.fillText("♻️ Puntos: " + pts + "   ⏱ " + Math.ceil(t) + "s", 8, 22);
+
+    t > 0 ? requestAnimationFrame(f) : fin();
+  };
+
   requestAnimationFrame(f);
 }
 
@@ -124,18 +199,19 @@ function juegoFocos(p) {
   const timerEl = $("focos-timer");
   const gridEl = $("focos-grid");
 
-  let focos = Array(9).fill(false);
+  let focos = Array(9).fill(false); // false = apagado, true = encendido
   let apagadosCount = 0;
-  let tiempoRestante = 120;
+  let tiempoRestante = 120; // 2 minutos (120 segundos)
   let timerInterval = null;
   let spawnTimeout = null;
   let activo = true;
 
+  // Crear los 9 focos de la cuadrícula 3x3
   for (let i = 0; i < 9; i++) {
     const btn = document.createElement("button");
     btn.className = "foco-btn";
     btn.dataset.index = i;
-    btn.innerHTML = "🔌";
+    btn.innerHTML = "🔌"; // Icono de foco apagado
     btn.addEventListener("click", () => apagarFoco(i));
     gridEl.appendChild(btn);
   }
@@ -161,6 +237,7 @@ function juegoFocos(p) {
       countEl.textContent = apagadosCount;
       actualizarGrid();
 
+      // Efecto visual de chispas/estrellas al apagar
       const rect = gridEl.children[index].getBoundingClientRect();
       const stageRect = stage.getBoundingClientRect();
       emite("✨", 3, {
@@ -171,23 +248,28 @@ function juegoFocos(p) {
     }
   };
 
+  // Enciende focos aleatorios a un ritmo cada vez más rápido
   const programarSiguienteFoco = () => {
     if (!activo) return;
 
+    // Obtener índices de focos actualmente apagados
     const apagados = [];
     for (let i = 0; i < 9; i++) {
       if (!focos[i]) apagados.push(i);
     }
 
     if (apagados.length > 0) {
+      // Elegir un foco apagado al azar y encenderlo
       const idx = apagados[Math.floor(Math.random() * apagados.length)];
       focos[idx] = true;
       actualizarGrid();
     }
 
+    // Aceleración Progresiva:
+    // Empieza en 1100 ms por foco y acelera hasta 220 ms a medida que el tiempo llega a 0
     const velocidadMinima = 220;
     const velocidadInicial = 1100;
-    const factorTiempo = tiempoRestante / 120;
+    const factorTiempo = tiempoRestante / 120; // Va de 1.0 a 0.0
     const delay = velocidadMinima + factorTiempo * (velocidadInicial - velocidadMinima);
 
     spawnTimeout = setTimeout(programarSiguienteFoco, delay);
@@ -208,7 +290,7 @@ function juegoFocos(p) {
 
   const finJuego = () => {
     parar();
-    const premio = apagadosCount;
+    const premio = apagadosCount; // 1 Copo de nieve por foco apagado
     s.monedas += premio;
     s.diversion = lim(s.diversion + 35);
     s.energia = lim(s.energia - 15);
@@ -220,6 +302,7 @@ function juegoFocos(p) {
     render();
   };
 
+  // Cronómetro de 1 segundo
   timerInterval = setInterval(() => {
     if (!activo) return;
     tiempoRestante--;
@@ -229,14 +312,17 @@ function juegoFocos(p) {
     }
   }, 1000);
 
+  // Iniciar la secuencia
   programarSiguienteFoco();
 }
 
 // ---- Minijuego 3: Cinta de Residuos 🏭🔥 ----
+// Los residuos viajan por la cinta hacia el incinerador. Arrastralos al contenedor correcto
+// (orgánico / reciclable / vidrio) antes de que lleguen. 3 vidas, 60 segundos.
 function juegoCinta(p) {
-  const CW = 320, CH = 300;
-  const BY = 96;
-  const INC = 262;
+  const CW = 320, CH = 300;   // tamaño lógico del canvas
+  const BY = 96;              // altura (y) de los residuos sobre la cinta
+  const INC = 262;            // x donde empieza el incinerador
   const VIDAS = 3, DUR = 60;
   const FONT = "Fredoka,system-ui,sans-serif";
   const TIPOS = {
@@ -255,7 +341,7 @@ function juegoCinta(p) {
   `;
 
   const cv = $("cv-cinta"), c = cv.getContext("2d");
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const dpr = Math.min(2, window.devicePixelRatio || 1);   // canvas nítido en pantallas retina
   cv.width = CW * dpr; cv.height = CH * dpr; c.setTransform(dpr, 0, 0, dpr, 0, 0);
 
   let it = [], pop = [], flash = [], drag = null, aviso = null;
@@ -294,6 +380,7 @@ function juegoCinta(p) {
     aviso = { txt: o.e + " se quemó · va en " + TIPOS[o.k].n, t: 2.2 };
   };
 
+  // Arrastrar: se agarra con el puntero sobre el canvas; mover y soltar se escuchan en window
   cv.addEventListener("pointerdown", e => {
     if (!vivo || drag) return;
     const q = lp(e);
@@ -314,8 +401,9 @@ function juegoCinta(p) {
     const o = drag; drag = null;
     const b = binEn(o);
     if (b) clasifica(o, b);
-    else { o.y = BY; o.x = Math.min(o.x, INC - 24); }
+    else { o.y = BY; o.x = Math.min(o.x, INC - 24); }   // si no cae en un contenedor, vuelve a la cinta
   };
+  // Teclado: O / R / V mandan al contenedor el residuo más cercano al incinerador
   const kd = e => {
     if (!vivo || e.ctrlKey || e.metaKey || e.altKey) return;
     const k = { o: "org", r: "rec", v: "vid" }[e.key.toLowerCase()];
@@ -359,16 +447,19 @@ function juegoCinta(p) {
     c.fillStyle = "#eaf3f7"; c.fillRect(0, 0, CW, CH);
     c.fillStyle = "#dbe8ee"; c.fillRect(0, 152, CW, CH - 152);
 
+    // Cinta transportadora (las tablillas avanzan a la misma velocidad que los residuos)
     c.fillStyle = "#37474f"; c.fillRect(40, 132, 12, 20); c.fillRect(200, 132, 12, 20);
     c.fillStyle = "#455a64"; rr(-10, 108, INC + 14, 24, 8); c.fill();
     c.fillStyle = "#607d8b"; c.fillRect(0, 108, INC + 4, 4);
     c.strokeStyle = "rgba(0,0,0,.22)"; c.lineWidth = 2;
     for (let x = belt - 24; x < INC; x += 24) { c.beginPath(); c.moveTo(x, 114); c.lineTo(x, 130); c.stroke(); }
-    c.fillStyle = "rgba(244,67,54,.2)"; c.fillRect(INC - 44, 112, 44, 20);
+    c.fillStyle = "rgba(244,67,54,.2)"; c.fillRect(INC - 44, 112, 44, 20);   // zona de peligro
 
+    // Residuos sobre la cinta (el que se arrastra se dibuja al final, encima de todo)
     c.font = "28px serif"; c.textAlign = "center";
     it.forEach(o => { if (o !== drag) c.fillText(o.e, o.x, o.y); });
 
+    // Incinerador (tapa a los residuos que "entran")
     c.fillStyle = "#37474f"; rr(INC, 66, CW - INC + 8, 76, 8); c.fill();
     c.fillStyle = "#455a64"; c.fillRect(CW - 26, 44, 16, 24);
     c.fillStyle = "#1b1b1b"; rr(INC + 2, 84, 34, 48, 6); c.fill();
@@ -380,6 +471,7 @@ function juegoCinta(p) {
       c.beginPath(); c.arc(302 + Math.sin(k * 6 + i) * 4, 44 - k * 14, 3 + k * 5, 0, 7); c.fill();
     }
 
+    // Contenedores
     BINS.forEach(b => {
       const T = TIPOS[b.k], hov = drag && binEn(drag) === b, dy = hov ? -5 : 0, bx = b.x + b.w / 2;
       c.fillStyle = "rgba(0,0,0,.12)"; c.beginPath(); c.ellipse(bx, b.y + b.h + 2, b.w / 2, 5, 0, 0, 7); c.fill();
@@ -396,6 +488,7 @@ function juegoCinta(p) {
       c.font = "700 13px " + FONT; c.fillText(T.n, bx, b.y + 74 + dy);
     });
 
+    // Aviso didáctico (a qué contenedor iba el residuo)
     if (aviso) {
       c.globalAlpha = Math.min(1, aviso.t * 2);
       c.font = "600 13px " + FONT; c.fillStyle = "#263238"; c.textAlign = "center";
@@ -403,6 +496,7 @@ function juegoCinta(p) {
       c.globalAlpha = 1;
     }
 
+    // Residuo agarrado
     if (drag) {
       c.save();
       c.shadowColor = "rgba(0,0,0,.35)"; c.shadowBlur = 10;
@@ -411,6 +505,7 @@ function juegoCinta(p) {
       c.restore();
     }
 
+    // Textos flotantes (+1, −1, racha…)
     pop.forEach(q => {
       c.globalAlpha = Math.max(0, 1 - q.t / 1.1);
       c.font = "700 15px " + FONT; c.fillStyle = q.col; c.textAlign = "center";
@@ -418,17 +513,20 @@ function juegoCinta(p) {
     });
     c.globalAlpha = 1;
 
+    // Ayuda inicial
     if (DUR - t < 8 && pts === 0) {
       c.font = "600 12px " + FONT; c.fillStyle = "#546e7a"; c.textAlign = "center";
       c.fillText("Arrastrá cada residuo a su contenedor ↓", 130, 64);
     }
 
+    // Marcador
     c.font = "600 15px " + FONT; c.fillStyle = "#263238";
     c.textAlign = "left";   c.fillText("⭐ " + pts, 8, 16);
     c.textAlign = "center"; c.fillText("❤️".repeat(vidas) + "🖤".repeat(VIDAS - vidas), CW / 2, 16);
     c.textAlign = "right";  c.fillText("⏱ " + Math.max(0, Math.ceil(t)) + "s", CW - 8, 16);
     if (racha >= 2) { c.font = "600 12px " + FONT; c.textAlign = "left"; c.fillText("Racha x" + racha, 8, 36); }
 
+    // Destello rojo cuando algo se quema
     if (quemado > 0) { c.fillStyle = "rgba(255,87,34," + (quemado * .6).toFixed(2) + ")"; c.fillRect(0, 0, CW, CH); }
   };
 
@@ -437,13 +535,14 @@ function juegoCinta(p) {
     const dt = Math.min((n - u) / 1000, .05);
     u = n; t -= dt; sp -= dt; reloj += dt;
 
+    // La cinta se acelera y los residuos aparecen cada vez más seguido
     const prog = Math.min(1, (DUR - t) / DUR), v = 40 + 50 * prog;
     belt = (belt + v * dt) % 24;
     if (quemado > 0) quemado -= dt;
     if (sp <= 0) { sp = 1.8 - .8 * prog; aparece(); }
 
     it = it.filter(o => {
-      if (o === drag) return true;
+      if (o === drag) return true;          // el que tenés agarrado no avanza
       o.x += v * dt;
       if (o.x > INC) { quema(o); return false; }
       return true;
@@ -688,15 +787,18 @@ document.addEventListener("keydown",e=>{
   if(e.ctrlKey||e.metaKey||e.altKey||(e.target.closest&&e.target.closest("input,textarea,select,[contenteditable]")))return;
   const k=e.key.toLowerCase();
   if(salas[k-1]){irA(salas[k-1]);return}
-  const a={d:"dormir",r:"revivir"}[k];
+  const a={d:"dormir"}[k];
   if(!a||(a=="revivir")!=s.muerto||(s.dormido&&a!="dormir"))return;
   A[a]();guardar();render();
 });
 
+
+// ---- Partículas, mirada, comida arrastrable y vida propia ----
 const fx=$("fx"),cx=fx.getContext("2d");let P=[],W=0,H=0,lt=performance.now();
 const fit=()=>{W=fx.width=stage.clientWidth;H=fx.height=stage.clientHeight};
 const nieve=Array.from({length:26},()=>({x:Math.random()*400,y:Math.random()*400,r:1+Math.random()*2.5,v:12+Math.random()*25}));
-function emite(e,n,o={}){const b=bear.getBoundingClientRect(),r=stage.getBoundingClientRect(),x=o.X??b.left-r.left+b.width*(o.x??.5),y=o.Y??b.top-r.top+b.height*(o.y??.5);for(let i=0;i<n;i++)P.push({e,x,y,vx:(Math.random()-.5)*(o.v||120),vy:-(o.up??60)-Math.random()*80,g:o.g??200,t:0,l:o.l||1.2})}
+function emite(e,n,o={}){const b=bear.getBoundingClientRect(),r=stage.getBoundingClientRect(),x=o.X??b.left-r.left+b.width*(o.x??.5),y=o.Y??b.top-r.top+b.height*(o.y??.5);
+  for(let i=0;i<n;i++)P.push({e,x,y,vx:(Math.random()-.5)*(o.v||120),vy:-(o.up??60)-Math.random()*80,g:o.g??200,t:0,l:o.l||1.2})}
 function bucle(n){
   const dt=Math.min((n-lt)/1000,.05);lt=n;
   if(W!=stage.clientWidth||H!=stage.clientHeight)fit();
@@ -720,29 +822,44 @@ panel.addEventListener("pointerdown",e=>{
     if(!mov||sobreBoca(ev)){A.comer(i);guardar();render()}else decir("Soltala sobre la boca de Polo.")};
   pos(e);addEventListener("pointermove",pos);addEventListener("pointerup",up);addEventListener("pointercancel",up);
 });
-setInterval(()=>{if(s.dormido||s.muerto||document.hidden)return;const a=s.energia<30?"bosteza":["saluda","bosteza","salto"][Math.random()*3|0];anim(a,a=="bosteza"?2000:1600);if(a=="saluda")emite("👋",1,{y:.1,up:30,g:-20,v:20})},8000);
+setInterval(()=>{if(s.dormido||s.muerto||document.hidden)return;const a=s.energia<30?"bosteza":["saluda","bosteza","salto"][Math.random()*3|0];
+  anim(a,a=="bosteza"?2000:1600);if(a=="saluda")emite("👋",1,{y:.1,up:30,g:-20,v:20})},8000);
 const dentro=e=>{const b=bear.getBoundingClientRect();return e.clientX>b.left&&e.clientX<b.right&&e.clientY>b.top&&e.clientY<b.bottom};
 panel.addEventListener("pointerdown",e=>{
   if(!e.target.closest(".jabon")||s.muerto||s.dormido)return;e.preventDefault();
   const g=document.createElement("div");g.className="drag";g.textContent="🧼";(root.body||root).appendChild(g);
   let n=0,ok=s.limpieza>=100;
-  const pos=ev=>{g.style.left=ev.clientX+"px";g.style.top=ev.clientY+"px";if(!dentro(ev))return;s.limpieza=lim(s.limpieza+1.5);s.diversion=lim(s.diversion+.15);if(++n%3==0){const r=stage.getBoundingClientRect();emite("🫧",1,{X:ev.clientX-r.left,Y:ev.clientY-r.top,v:60,up:30,g:-40,l:1.2})}if(s.limpieza>=100&&!ok){ok=true;decir("¡Polo quedó impecable!");gana(3);emite("✨",8,{v:200,up:100,g:80,l:1.4})}render()};
+  const pos=ev=>{g.style.left=ev.clientX+"px";g.style.top=ev.clientY+"px";
+    if(!dentro(ev))return;
+    s.limpieza=lim(s.limpieza+1.5);s.diversion=lim(s.diversion+.15);
+    if(++n%3==0){const r=stage.getBoundingClientRect();emite("🫧",1,{X:ev.clientX-r.left,Y:ev.clientY-r.top,v:60,up:30,g:-40,l:1.2})}
+    if(s.limpieza>=100&&!ok){ok=true;decir("¡Polo quedó impecable!");gana(3);emite("✨",8,{v:200,up:100,g:80,l:1.4})}
+    render()};
   const up=()=>{removeEventListener("pointermove",pos);removeEventListener("pointerup",up);removeEventListener("pointercancel",up);g.remove();guardar()};
   pos(e);addEventListener("pointermove",pos);addEventListener("pointerup",up);addEventListener("pointercancel",up);
 });
 setInterval(()=>{if(s.dormido&&!s.muerto&&!document.hidden)emite("💤",1,{x:.62,y:.12,up:40,g:-25,v:30,l:2.4})},1600);
+// ---- Basura flotante: orgánico → compost, plástico → ropa ----
 const BAS=[["o","🍌"],["o","🍎"],["o","🥕"],["o","🥬"],["o","🍊"],["p","🥤"],["p","🧴"],["p","🛍️"]],G=$("basura");
 function basura(){
   if(s.dormido||s.muerto||document.hidden||G.childElementCount>=4)return;
   const b=bear.getBoundingClientRect(),r=stage.getBoundingClientRect(),k=b.width/200;if(!k)return;
   const xa=(r.left-b.left)/k+16,xb=(r.right-b.left)/k-16,ym=(msg.getBoundingClientRect().top-b.top)/k-14,
     x=Math.random()<.5?xa+Math.random()*(-16-xa):216+Math.random()*(xb-216),y=216+Math.random()*Math.max(0,ym-216),
-    [t,e]=BAS[Math.random()*BAS.length|0],org=t=="o",n=document.createElementNS("http://www.w3.org/2000/svg","g"),tx=org?"Orgánico: se composta":"Plástico: se cambia por ropa";
+    [t,e]=BAS[Math.random()*BAS.length|0],org=t=="o",n=document.createElementNS("http://www.w3.org/2000/svg","g"),
+    tx=org?"Orgánico: se composta":"Plástico: se cambia por ropa";
   n.setAttribute("class","bas");n.setAttribute("role","button");n.setAttribute("tabindex","0");n.setAttribute("aria-label",tx);
   n.innerHTML=`<title>${tx}</title><circle cx="${x}" cy="${y}" r="20" fill="#fff" fill-opacity=".001"/><text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central" font-size="26">${e}</text>`;
-  const c=ev=>{ev.stopPropagation();if(!n.parentNode)return;const q=n.getBoundingClientRect(),rr=stage.getBoundingClientRect();n.remove();org?s.org++:s.pla++;emite(org?"🌱":"✨",4,{X:q.left+q.width/2-rr.left,Y:q.top+q.height/2-rr.top,v:100,up:50,g:60,l:1});decir(org?e+" ¡Al compost! Orgánico: "+s.org:e+" ¡Plástico! Ya tenés "+s.pla+" para cambiar por ropa");gana(1);guardar();render();if(sala=="eco")pintar()};
-  n.onclick=c;n.onkeydown=ev=>{if(ev.key=="Enter"||ev.key==" "){ev.preventDefault();c(ev)}};G.appendChild(n)}
+  const c=ev=>{ev.stopPropagation();if(!n.parentNode)return;
+    const q=n.getBoundingClientRect(),rr=stage.getBoundingClientRect();n.remove();
+    org?s.org++:s.pla++;
+    emite(org?"🌱":"✨",4,{X:q.left+q.width/2-rr.left,Y:q.top+q.height/2-rr.top,v:100,up:50,g:60,l:1});
+    decir(org?e+" ¡Al compost! Orgánico: "+s.org:e+" ¡Plástico! Ya tenés "+s.pla+" para cambiar por ropa");gana(1);guardar();render();if(sala=="eco")pintar()};
+  n.onclick=c;n.onkeydown=ev=>{if(ev.key=="Enter"||ev.key==" "){ev.preventDefault();c(ev)}};
+  G.appendChild(n)}
 setTimeout(basura,2500);setInterval(basura,9000);
 addEventListener("error",e=>{if((e.filename||"").includes("main.js"))decir("Error: "+e.message)});
-tiempo(Math.min(Math.floor((Date.now()-s.ultimo)/TICK),2700));decir(estadoMsg());pintar();render();setInterval(()=>{tiempo(1);s.ultimo=Date.now();decir(estadoMsg());guardar();render()},TICK);
+tiempo(Math.min(Math.floor((Date.now()-s.ultimo)/TICK),2700));
+decir(estadoMsg());pintar();render();
+setInterval(()=>{tiempo(1);s.ultimo=Date.now();decir(estadoMsg());guardar();render()},TICK);
 })();
