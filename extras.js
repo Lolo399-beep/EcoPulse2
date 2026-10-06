@@ -44,6 +44,19 @@ let puntos = [];
 try { puntos = JSON.parse(localStorage.getItem(KEY)) || []; } catch { puntos = []; }
 const guardar = () => { try { localStorage.setItem(KEY, JSON.stringify(puntos)); } catch {} };
 
+/* Si existe el servidor (server.js), los puntos se comparten con todos.
+   Si no (hosting estático), se usa localStorage como antes. */
+let enServidor = false;
+async function cargarServidor() {
+  try {
+    const r = await fetch('api/puntos', { cache: 'no-store' });
+    if (!r.ok) throw new Error();
+    const datos = await r.json();
+    if (!Array.isArray(datos)) throw new Error();
+    puntos = datos; enServidor = true;
+  } catch { enServidor = false; }
+}
+
 let mapa = null, listo = false, sel = null, selMarker = null;
 const marcadores = new Map();
 const f5 = n => Number(n).toFixed(5);
@@ -58,9 +71,8 @@ function iniciarMapa() {
     maxZoom: 19, attribution: '&copy; Colaboradores de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   }).addTo(mapa);
   mapa.on('click', e => seleccionar(e.latlng));
-  puntos.forEach(dibujar);
-  listar();
   setTimeout(() => mapa.invalidateSize(), 50);
+  cargarServidor().then(() => { puntos.forEach(dibujar); listar(); });
 }
 
 function seleccionar(ll) {
@@ -91,10 +103,15 @@ function listar() {
     info.append(t, s);
     info.addEventListener('click', () => { if (mapa) { mapa.flyTo([p.lat, p.lng], 12); marcadores.get(p.id)?.openPopup(); window.scrollTo(0, 0); } });
     const del = document.createElement('button'); del.type = 'button'; del.textContent = '🗑️'; del.setAttribute('aria-label', 'Eliminar punto');
-    del.addEventListener('click', () => {
+    del.addEventListener('click', async () => {
+      if (enServidor) {
+        try { const r = await fetch('api/puntos/' + encodeURIComponent(p.id), { method: 'DELETE' }); if (!r.ok && r.status !== 404) throw new Error(); }
+        catch { alert('No se pudo eliminar el punto. Probá de nuevo.'); return; }
+      }
       puntos = puntos.filter(x => x.id !== p.id);
       marcadores.get(p.id)?.remove(); marcadores.delete(p.id);
-      guardar(); listar();
+      if (!enServidor) guardar();
+      listar();
     });
     li.append(info, del); ul.append(li);
   });
@@ -103,16 +120,23 @@ function listar() {
   $('#r-tapitas').textContent = `${puntos.reduce((a, p) => a + p.cantidad, 0)} tapitas`;
 }
 
-$('#form-punto').addEventListener('submit', e => {
+$('#form-punto').addEventListener('submit', async e => {
   e.preventDefault();
   if (!sel) { $('#coords-sel').textContent = '⚠️ Primero tocá un lugar en el mapa.'; return; }
-  const p = {
+  let p = {
     id: Date.now(), lat: sel.lat, lng: sel.lng,
     lugar: $('#p-lugar').value.trim(),
     cantidad: Math.max(1, parseInt($('#p-cant').value, 10) || 1),
     fecha: new Date().toISOString()
   };
-  puntos.push(p); guardar(); dibujar(p); listar();
+  if (enServidor) {
+    try {
+      const r = await fetch('api/puntos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(p) });
+      if (!r.ok) throw new Error((await r.json()).error || 'Error');
+      p = await r.json();
+    } catch (err) { $('#coords-sel').textContent = '⚠️ No se pudo registrar: ' + err.message; return; }
+  }
+  puntos.push(p); if (!enServidor) guardar(); dibujar(p); listar();
   if (selMarker) { selMarker.remove(); selMarker = null; }
   sel = null;
   $('#coords-sel').textContent = '✅ Punto registrado. Podés elegir otro en el mapa.';
