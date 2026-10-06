@@ -1,0 +1,9 @@
+{
+  "name": "ecopulse",
+  "version": "1.0.0",
+  "description": "EcoPulse - juego de Polo y mapa de tapitas",
+  "main": "server.js",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" },
+  "license": "MIT"
+}
