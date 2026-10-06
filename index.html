@@ -5,8 +5,73 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Polo, tu oso polar</title>
 <link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<link rel="stylesheet" href="extras.css">
 </head>
 <body>
+<!-- ===== Menú hamburguesa ===== -->
+<header class="ep-bar">
+  <button class="ep-burger" id="menu-btn" aria-label="Abrir menú" aria-expanded="false" aria-controls="menu-drawer"><span></span><span></span><span></span></button>
+  <div class="ep-titulo" id="ep-titulo">🐻‍❄️ EcoPulse</div>
+</header>
+<div class="ep-overlay" id="menu-overlay"></div>
+<nav class="ep-drawer" id="menu-drawer" aria-label="Menú principal">
+  <h2>🐻‍❄️ EcoPulse</h2>
+  <a href="#juego" data-vista="juego">🎮 Juego de Polo</a>
+  <a href="#mapa" data-vista="mapa">🗺️ Mapa de tapitas</a>
+  <a href="#integrantes" data-vista="integrantes">👥 Integrantes</a>
+  <small>Tocá afuera o Esc para cerrar</small>
+</nav>
+
+<!-- ===== Vista: Mapa de tapitas ===== -->
+<section class="vista" id="vista-mapa" hidden>
+ <div class="vista-in">
+  <h1>🗺️ Mapa de tapitas</h1>
+  <p class="sub">Tocá el mapa donde se colocó una tapita para registrar sus coordenadas.</p>
+  <div class="card">
+    <div id="mapa"></div>
+    <div class="mapa-error" id="mapa-error" hidden>No se pudo cargar el mapa. Revisá tu conexión a internet y recargá la página.</div>
+  </div>
+  <div class="card">
+    <h2>📍 Registrar un punto</h2>
+    <form class="form-punto" id="form-punto" autocomplete="off">
+      <div class="full coords" id="coords-sel">Todavía no elegiste ningún punto en el mapa.</div>
+      <label>Lugar / descripción<input type="text" id="p-lugar" maxlength="80" placeholder="Ej: Plaza San Martín, Córdoba"></label>
+      <label>Cantidad de tapitas<input type="number" id="p-cant" min="1" value="1"></label>
+      <div class="full acciones">
+        <button type="submit" class="verde">➕ Registrar punto</button>
+        <button type="button" class="claro" id="btn-ubic">📡 Usar mi ubicación</button>
+      </div>
+    </form>
+  </div>
+  <div class="card">
+    <h2>📋 Puntos registrados</h2>
+    <div class="resumen"><span id="r-puntos">0 puntos</span><span id="r-tapitas">0 tapitas</span></div>
+    <ul class="lista" id="lista-puntos"></ul>
+    <p class="vacio" id="lista-vacia">Aún no hay puntos registrados.</p>
+    <div class="acciones" style="margin-top:12px">
+      <button type="button" class="claro" id="btn-copiar">📋 Copiar coordenadas (JSON)</button>
+    </div>
+  </div>
+ </div>
+</section>
+
+<!-- ===== Vista: Integrantes ===== -->
+<section class="vista" id="vista-integrantes" hidden>
+ <div class="vista-in">
+  <h1>👥 Integrantes</h1>
+  <p class="sub">Nombre del grupo · descripción breve del equipo (editá este texto).</p>
+  <div class="equipo">
+    <!-- Copiá y pegá un bloque <article> por cada integrante. Para usar una foto: <div class="foto"><img src="foto.jpg" alt="Nombre"></div> -->
+    <article class="miembro"><div class="foto">🧑</div><h3>Alti Olmedo Ulises</h3><div class="rol">Optimizacion de la pagina</div></article>
+    <article class="miembro"><div class="foto">🧑</div><h3>De Echeandía Tiziano</h3><div class="rol">Optimizacion de la pagina</div></article>
+    <article class="miembro"><div class="foto">🧑</div><h3>Orsi Lorenzo</h3><div class="rol">creacion del juego</div><p>Una frase sobre esta persona.</p></article>
+    <article class="miembro"><div class="foto">🧑</div><h3>Pacheco Jennifer</h3><div class="rol">Optimizacion de la pagina</div></article>
+    <article class="miembro"><div class="foto">🧑</div><h3>Sisi Kevin</h3></h3><div class="rol">Optimizacion de la pagina</div></article>
+  </div>
+ </div>
+</section>
+
 <div id="Polo">
 <main class="game">
   <header><h1>Polo</h1><div class="chips"></span><span id="monedas"></span></div></header>
@@ -75,4 +140,6 @@
 </div>
 </body>
 <script src = 'main.js'></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="extras.js"></script>
 </html>
