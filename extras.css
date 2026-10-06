@@ -1,0 +1,81 @@
+/* ===== EcoPulse extras: menú hamburguesa, mapa de tapitas e integrantes ===== */
+[hidden]{display:none!important}
+:root{--ep-noche:#0d2a40;--ep-azul:#4fb6e0;--ep-rosa:#ff7a8a;--ep-verde:#2f8f4e}
+html{scroll-behavior:smooth}
+
+/* Barra superior */
+.ep-bar{position:fixed;top:0;left:0;right:0;z-index:2000;display:flex;align-items:center;gap:12px;
+  padding:calc(8px + env(safe-area-inset-top,0px)) 14px 8px;pointer-events:none;font-family:"Fredoka",system-ui,sans-serif}
+.ep-bar>*{pointer-events:auto}
+.ep-burger{width:46px;height:46px;border:0;border-radius:14px;background:var(--ep-noche);color:#fff;cursor:pointer;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;gap:5px;padding:0;box-shadow:0 4px 14px rgba(13,42,64,.3)}
+.ep-burger span{display:block;width:22px;height:3px;border-radius:3px;background:#fff;transition:transform .25s,opacity .25s}
+.ep-burger[aria-expanded=true] span:nth-child(1){transform:translateY(8px) rotate(45deg)}
+.ep-burger[aria-expanded=true] span:nth-child(2){opacity:0}
+.ep-burger[aria-expanded=true] span:nth-child(3){transform:translateY(-8px) rotate(-45deg)}
+.ep-burger:focus-visible{outline:3px solid var(--ep-azul);outline-offset:2px}
+.ep-titulo{padding:6px 14px;border-radius:99px;background:rgba(255,255,255,.9);color:var(--ep-noche);font-weight:600;font-size:.95rem;box-shadow:0 2px 8px rgba(13,42,64,.15)}
+
+/* Menú lateral */
+.ep-overlay{position:fixed;inset:0;z-index:2050;background:rgba(13,42,64,.5);opacity:0;pointer-events:none;transition:opacity .3s}
+.ep-overlay.open{opacity:1;pointer-events:auto}
+.ep-drawer{position:fixed;top:0;left:0;bottom:0;width:min(290px,82vw);z-index:2100;background:#fff;color:var(--ep-noche);
+  transform:translateX(-105%);transition:transform .3s ease;padding:calc(20px + env(safe-area-inset-top,0px)) 16px 20px;
+  display:flex;flex-direction:column;gap:6px;box-shadow:6px 0 30px rgba(13,42,64,.3);font-family:"Fredoka",system-ui,sans-serif}
+.ep-drawer.open{transform:none}
+.ep-drawer h2{margin:0 0 10px;font-size:1.4rem}
+.ep-drawer a{display:flex;align-items:center;gap:12px;padding:13px 14px;border-radius:14px;color:inherit;text-decoration:none;font-weight:600;font-size:1.05rem}
+.ep-drawer a:hover{background:rgba(79,182,224,.18)}
+.ep-drawer a.on{background:var(--ep-noche);color:#fff}
+.ep-drawer a:focus-visible{outline:3px solid var(--ep-azul);outline-offset:2px}
+.ep-drawer small{margin-top:auto;opacity:.6}
+
+/* El juego deja espacio para la barra */
+#Polo{padding-top:68px}
+
+/* Vistas nuevas */
+.vista{min-height:100vh;box-sizing:border-box;padding:76px 14px 30px;font-family:"Fredoka",system-ui,sans-serif;color:var(--ep-noche);
+  background:linear-gradient(180deg,#a9dcf0,#e9f8fd)}
+.vista *{box-sizing:border-box}
+.vista-in{width:min(920px,100%);margin:0 auto}
+.vista h1{margin:0 0 6px;font-size:2rem}
+.vista .sub{margin:0 0 16px;opacity:.8}
+.card{background:#fff;border-radius:24px;padding:16px;box-shadow:0 8px 24px rgba(13,42,64,.14);margin-bottom:16px}
+.card h2{margin:0 0 10px;font-size:1.15rem}
+.vista button,.vista .btn{font:inherit;font-weight:600;border:0;border-radius:14px;padding:11px 16px;background:var(--ep-noche);color:#fff;cursor:pointer}
+.vista button:hover{filter:brightness(1.2)}
+.vista button.verde{background:var(--ep-verde)}
+.vista button.claro{background:rgba(13,42,64,.12);color:var(--ep-noche)}
+.vista button:focus-visible,.vista input:focus-visible{outline:3px solid var(--ep-azul);outline-offset:2px}
+
+/* Mapa */
+#mapa{height:min(62vh,520px);min-height:340px;border-radius:18px;z-index:0;background:#dff3fa}
+.mapa-error{padding:14px;border-radius:14px;background:#ffe3e6;margin-top:10px}
+.pin{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#fff;border:3px solid var(--ep-verde);font-size:16px;box-shadow:0 2px 6px rgba(0,0,0,.3)}
+.form-punto{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form-punto label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;font-weight:600}
+.form-punto input{font:inherit;padding:10px 12px;border-radius:12px;border:2px solid #cfe3ec;background:#f7fcfe;color:var(--ep-noche)}
+.form-punto .full{grid-column:1/-1}
+.coords{padding:10px 12px;border-radius:12px;background:#eef8fc;font-variant-numeric:tabular-nums}
+.acciones{display:flex;flex-wrap:wrap;gap:8px}
+.resumen{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.resumen span{padding:5px 12px;border-radius:99px;background:#eef8fc;font-weight:600;font-size:.9rem}
+.lista{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.lista li{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 12px;border-radius:14px;background:#f3fafd}
+.lista .info{flex:1;cursor:pointer;min-width:0}
+.lista .info b{display:block;overflow-wrap:anywhere}
+.lista .info small{opacity:.75}
+.lista button{padding:8px 12px}
+.vacio{opacity:.65;margin:0}
+
+/* Integrantes */
+.equipo{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+.miembro{background:#fff;border-radius:24px;padding:20px 14px;text-align:center;box-shadow:0 8px 24px rgba(13,42,64,.14)}
+.miembro .foto{width:92px;height:92px;margin:0 auto 10px;border-radius:50%;background:linear-gradient(135deg,#cfeef5,#a9dcf0);display:grid;place-items:center;font-size:2.6rem;overflow:hidden}
+.miembro .foto img{width:100%;height:100%;object-fit:cover}
+.miembro h3{margin:0;font-size:1.1rem}
+.miembro .rol{margin:2px 0 8px;font-weight:600;color:#2a7fb0;font-size:.9rem}
+.miembro p{margin:0;font-size:.85rem;opacity:.8}
+
+@media(max-width:520px){.form-punto{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.ep-drawer,.ep-overlay,.ep-burger span{transition:none!important}}
