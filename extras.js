@@ -67,8 +67,8 @@ function iniciarMapa() {
   listo = true;
   const lim = L.latLngBounds([-56, -75], [-21, -52]);           // Argentina (aprox.)
   mapa = L.map('mapa', { minZoom: 3, maxBounds: lim.pad(0.4), maxBoundsViscosity: 0.8 }).setView([-38.4, -63.6], 4);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19, attribution: '&copy; Colaboradores de <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+  L.tileLayer('https://mt1.google.com/vt/lyrs=m&hl=es&x={x}&y={y}&z={z}', {
+    maxZoom: 19, attribution: 'Datos del mapa &copy; Google'
   }).addTo(mapa);
   mapa.on('click', e => seleccionar(e.latlng));
   setTimeout(() => mapa.invalidateSize(), 50);
