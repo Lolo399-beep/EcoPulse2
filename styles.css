@@ -296,3 +296,8 @@ body.dormido {
 #Polo .full {
   grid-column: 1 / -1;
 }
+.eco-pulse {
+  color: var(--noche);
+  font-size: 1.15em;
+  font-weight: 600;
+}
