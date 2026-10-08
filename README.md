@@ -2,5 +2,7 @@
 
 [BIBLIOGRAFIA](https://docs.google.com/document/d/145OuoGsq1ntoBoj_M9Q8n4Gz8qy7nZaE4SpR9k1wbVQ/edit?tab=t.0)
 
+[NOTEBOOKLM](https://notebook.google.com/notebook/dfa8fcf1-b5fe-4750-ab43-94821d251827)
+
 [INFORME TECNICO](https://docs.google.com/document/d/1zRS4Fa2MeJ9rye4WjNLyftYZRMgj2puOYZcq_x3zb_A/edit?tab=t.0)
 
