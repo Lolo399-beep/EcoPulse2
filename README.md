@@ -6,3 +6,6 @@
 
 [INFORME TECNICO](https://docs.google.com/document/d/1zRS4Fa2MeJ9rye4WjNLyftYZRMgj2puOYZcq_x3zb_A/edit?tab=t.0)
 
+
+[PAGINA WEB](ecopulse2-production.up.railway.app)
+Agregue la pagina web para acceder mas rapido al proyecto pero recomiendo que sigan usando visual studio code
