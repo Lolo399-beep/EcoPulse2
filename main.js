@@ -54,11 +54,13 @@ function pintar(){
   panel.innerHTML={
     cocina:COMIDA.map((c,i)=>`<div class="food" data-i="${i}" data-e="${c[4]}"><b>${c[4]}</b>${c[0]}${i==FAV?" ⭐":""}<small>${c[1]?c[1]+" ❄️":"gratis"}</small></div>`).join("")+'<p class="info">Arrastrá la comida hasta la boca de Polo (o tocala).</p>',
     bano:'<div class="jabon"><b>🧼</b>Jabón<small>frotalo sobre Polo</small></div>'+B("banar","Ducha rápida<small>gratis</small>")+'<p class="info">Arrastrá el jabón y frotá a Polo hasta dejarlo limpio.</p>',
-    cuarto: B("dormir", "Apagar luz y dormir<small>recupera energía</small>", "", "full"), juego: 
-    B("jugarTuberias", "🚰 Tuberías<small>−15 energía, regá el huerto</small>", "", "azul") +
-    B("jugarReciclaje", "♻️️ Ecorreciclaje<small>−15 energía, ganás ❄️</small>") +
-    B("jugarFocos", "💡 Apaga Focos<small>−15 energía, 2 min de rapidez</small>", "", "rosa") +
-    B("jugarCinta", "🏭 Cinta de Residuos<small>−15 energía, ¡clasificá antes del 🔥!</small>", "", "verde"),
+    // CÓDIGO MODIFICADO:
+cuarto: B("dormir", "Apagar luz y dormir<small>recupera energía</small>", "", "full"), juego: 
+'<div class="cartel-costo">Cada minijuego cuesta <b>35 monedas ❄️</b></div>' +
+B("jugarTuberias", "🚰 Tuberías<small>−15 energía, regá el huerto</small>", "", "azul") +
+B("jugarReciclaje", "♻ Ecorreciclaje<small>−15 energía, ganás ❄️</small>") +
+B("jugarFocos", "💡 Apaga Focos<small>−15 energía, 2 min de rapidez</small>", "", "rosa") +
+B("jugarCinta", "🏭 Cinta de Residuos<small>−15 energía, ¡clasificá antes del 🔥!</small>", "", "verde"),
     eco:`<p class="info">🍎 Orgánico <b>${s.org}</b> · 🥤 Plástico <b>${s.pla}</b> · 🌱 Compost <b>${s.comp}</b></p>`+B("compostar","🌱 Hacer compost<small>orgánico → ❄️ y ✨</small>","","verde")+Object.entries(ROPA).map(([k,[e,n,c]])=>B("ropa",e+" "+n+"<small>"+(s.ropa[k]==2?"puesto ✓":s.ropa[k]?"ponérselo":c+" 🥤")+"</small>",k)).join("")+'<p class="info">Tocá la basura que flota: 🍌 se composta y 🥤 se cambia por ropa.</p>',
   }[sala];
   panel.style.gridTemplateColumns=sala=="cocina"||sala=="eco"?"repeat(3,1fr)":"";
@@ -764,10 +766,10 @@ const A={
   banar(){s.limpieza=100;s.diversion=lim(s.diversion+5);anim("sacude");burbujas();emite("🫧",8,{v:200,up:60,g:-60,l:1.6});gana(3);decir("Polo quedó blanquito.")},
   dormir(){if(!s.dormido&&s.energia>=95)return decir("Polo no tiene sueño todavía.");s.dormido=!s.dormido;if(!s.dormido)gana(4);decir(s.dormido?"Luz apagada. Buenas noches, Polo…":"¡Buen día, Polo!");pintar()},
   revivir(){s.muerto=false;ST.forEach(k=>s[k]=50);anim("salto");decir("¡Polo volvió!");pintar()},
-  jugarReciclaje(){if(s.energia<15)return decir("Polo está muy cansado.");if(s.monedas<35)return decir("Te faltan monedas.");s.monedas-=100;juego(panel)},
-  jugarFocos(){if(s.energia<15)return decir("Polo está muy cansado.");if(s.monedas<35)return decir("Te faltan monedas.");s.monedas-=100;juegoFocos(panel)},
-  jugarCinta(){if(s.energia<15)return decir("Polo está muy cansado.");if(s.monedas<35)return decir("Te faltan monedas.");s.monedas-=100;juegoCinta(panel)},
-  jugarTuberias(){if(s.energia<15)return decir("Polo está muy cansado.");if(s.monedas<35)return decir("Te faltan monedas.");s.monedas-=100;juegoTuberias(panel)},
+  jugarReciclaje(){if(s.energia<15)return decir("Polo está muy cansado.");if(s.monedas<35)return decir("Te faltan monedas.");s.monedas-=35;juego(panel)},
+  jugarFocos(){if(s.energia<15)return decir("Polo está muy cansado.");if(s.monedas<35)return decir("Te faltan monedas.");s.monedas-=35;juegoFocos(panel)},
+  jugarCinta(){if(s.energia<15)return decir("Polo está muy cansado.");if(s.monedas<35)return decir("Te faltan monedas.");s.monedas-=35;juegoCinta(panel)},
+  jugarTuberias(){if(s.energia<15)return decir("Polo está muy cansado.");if(s.monedas<35)return decir("Te faltan monedas.");s.monedas-=35;juegoTuberias(panel)},
   compostar(){const n=s.org;if(!n)return decir("No tenés restos orgánicos. Juntá 🍌🍎🥕 del agua.");s.org=0;s.comp+=n;s.monedas+=n*2;emite("🌱",Math.min(n*2,10),{y:.3,up:80,g:80,v:200,l:1.4});decir("¡Compost listo con "+n+" resto"+(n>1?"s":"")+"! +"+n*2+" ❄️");gana(n*2);pintar()},
 ropa(k){const[e,n,c]=ROPA[k],r=s.ropa;if(!r[k]){if(s.pla<c)return decir("Te faltan plásticos: "+n+" cuesta "+c+" 🥤.");s.pla-=c;r[k]=2;emite(e,6,{y:.3,up:90,g:60,l:1.4});anim("baila",1500);decir("¡Plástico → ropa nueva: "+n+"!");gana(5)}else{r[k]=3-r[k];decir("Polo se "+(r[k]==2?"puso":"sacó")+": "+n)}if(r[k]==2)sacaMismoSlot(k);pintar()}};
 panel.addEventListener("click",e=>{const b=e.target.closest("button");if(!b||!A[b.dataset.a])return;A[b.dataset.a](b.dataset.x);guardar();render()});
